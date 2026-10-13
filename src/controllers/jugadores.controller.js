@@ -1,0 +1,1 @@
+const tareaModel = require('../models/tarea.model.js');
