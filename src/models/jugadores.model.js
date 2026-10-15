@@ -4,24 +4,20 @@
  */
 
 let jugadores = [
-    { id: 1, nickname: 'Dexter', nombre_real: 'Michael Williams', pais: 'Estados Unidos', rol: 'Jungle', estado: 'activo'},
-    { id: 2, nickname: 'Zatanaz', nombre_real: 'Valentin Lopez', pais: 'Mexico', rol: 'Mid', estado: 'activo'},
-    { id: 3, nickname: 'Mecha', nombre_real: 'Haruto Tanaka', pais: 'Japon', rol: 'Top', estado: 'inactivo'},
-    { id: 4, nickname: 'Lion', nombre_real: 'Wei Zhang', pais: 'China', rol: 'ADC', estado: 'activo'},
-    { id: 5, nickname: 'Beatle', nomnre_real: 'Oliver Smith', pais: 'Inglaterra', rol: 'Support', estado: 'inactivo'}
+    { id: 1, nickname: 'Dexter', nombre_real: 'Michael Williams', pais: 'Estados Unidos', rol: 'Jungle', estado: 'activo' },
+    { id: 2, nickname: 'Zatanaz', nombre_real: 'Valentin Lopez', pais: 'Mexico', rol: 'Mid', estado: 'activo' },
+    { id: 3, nickname: 'Mecha', nombre_real: 'Haruto Tanaka', pais: 'Japon', rol: 'Top', estado: 'activo' },
+    { id: 4, nickname: 'Lion', nombre_real: 'Wei Zhang', pais: 'China', rol: 'ADC', estado: 'activo' },
+    { id: 5, nickname: 'Beatle', nombre_real: 'Oliver Smith', pais: 'Inglaterra', rol: 'Support', estado: 'activo' }
 ];
 
-let idActual = 4;
+let idActual = 5;
 
 // Listar todos los jugadores
-const obtenerTodos = (req, res) => {
-    return tareas;
-};
+const obtenerTodos = () => jugadores;
 
 // Obtener detalle de un jugador
-const obtenerPorId = (id) => {
-    return tareas.find(tarea => tarea.id === id);
-};
+const obtenerPorId = (id) => jugadores.find(j => j.id === id);
 
 // Crear un jugador
 const crearJugador = (datos) => {
