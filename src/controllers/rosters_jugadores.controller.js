@@ -9,15 +9,19 @@ const listarJugadores = (req, res) => {
 
         if (!jugadores) {
             return res.status(404).json({
+                success: false,
                 message: 'Lista no encontrada'
             });
         }
 
-        res.json(jugadores);
+        res.status(200).json({
+            succes: true,
+            jugadores
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error al listar los jugadores',
+            message: 'Error interno',
             error: error.message
         });
     }
@@ -36,15 +40,19 @@ const asignarJugador = (req, res) => {
 
         if (!nuevaAsignacion) {
             return res.status(404).json({
+                success: false,
                 message: "Roster/Jugador no encontrado"
             });
         }
 
-        res.status(201).json(nuevaAsignacion);
+        res.status(201).json({
+            success: true,
+            nuevaAsignacion
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error al asignar jugador',
+            message: 'Error interno',
             error: error.message
         });
     }
@@ -63,11 +71,15 @@ const cambiarRol = (req, res) => {
 
         if (!asignacionActualizada) {
             return res.status(404).json({
+                success: false,
                 message: 'Roster/Jugador no encontrado'
             });
         }
 
-        res.json(asignacionActualizada);
+        res.status(200).json({
+            success: true,
+            asignacionActualizada
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -86,11 +98,12 @@ const quitarJugador = (req, res) => {
 
         if (!asignacionEliminada) {
             return res.status(404).json({
+                success: false,
                 message: 'Roster/Jugador no encontrado'
             });
         }
 
-        res.json({
+        res.status(204).json({
             message: 'Jugador eliminado',
             asignacion: asignacionEliminada
         });

@@ -15,7 +15,7 @@ const TIPOS_ROSTER = ['Principal', 'Academia'];
 // Rol dentro de un roster
 const ROLES_ROSTER = ['Titular', 'Suplente'];
 
-module.expors = {
+module.exports = {
     ROLES,
     ESTADOS,
     TIPOS_ROSTER,

@@ -11,7 +11,7 @@ let jugadores = [
     { id: 5, nickname: 'Beatle', nombre_real: 'Oliver Smith', pais: 'Inglaterra', rol: 'Support', estado: 'activo' }
 ];
 
-let idActual = 5;
+let idActual = 6;
 
 // Listar todos los jugadores
 const obtenerTodos = () => jugadores;

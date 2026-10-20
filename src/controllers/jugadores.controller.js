@@ -4,11 +4,22 @@ const jugadoresModel = require('../models/jugadores.model.js');
 const obtenerTodos = (req, res) => {
     try {
         const jugadores = jugadoresModel.obtenerTodos();
-        res.json(jugadores);
+
+        if (!jugadores) {
+            return res.status(404).json({
+                success: false,
+                message: 'Jugadores no encontrados'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            jugadores
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error al obtener los jugadores',
+            message: 'Error interno',
             error: error.message
         });
     }
@@ -22,15 +33,20 @@ const obtenerPorId = (req, res) => {
 
         if (!jugador) {
             return res.status(404).json({
-                mensaje: 'Jugador no encontrado'
+                success: false,
+                message: 'Jugador no encontrado'
             });
         }
 
-        res.status(200).json(jugador);
+        res.status(200).json({
+            success: true,
+            jugador
+        });
+
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error al obtener al jugador',
+            message: 'Error interno',
             error: error.message
         });
     }
@@ -48,11 +64,15 @@ const crearJugador = (req, res) => {
         };
         
         const nuevoJugador = jugadoresModel.crearJugador(datos);
-        res.status(201).json(nuevoJugador);
+
+        res.status(201).json({
+            success: true,
+            nuevoJugador
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error al crear jugador',
+            message: 'Error interno',
             error: error.message
         });
     }
@@ -75,11 +95,15 @@ const actualizarJugador = (req, res) => {
 
         if (!jugadorActualizado) {
             return res.status(404).json({
+                success: false,
                 message: 'Jugador no encontrado'
             });
         }
 
-        res.json(jugadorActualizado);
+        res.status(200).json({
+            success: true,
+            jugadorActualizado
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
@@ -101,8 +125,8 @@ const eliminarJugador = (req, res) => {
             });
         }
 
-        res.json({
-            mensaje: 'Jugador eliminado',
+        res.status(204).json({
+            success: true,
             jugador: jugadorEliminado
         });
     } catch (error) {

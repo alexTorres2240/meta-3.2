@@ -4,171 +4,232 @@
 GET {{host}}/
 ###
 
-
-# ---------- AUXILIARES ----------
-
-GET {{host}}/api/health
-###
-
-GET {{host}}/api/roles
-###
-
-GET {{host}}/api/estados
-###
-
-GET {{host}}/api/tipos-roster
-###
-
-
-# ---------- JUGADORES ----------
-
 GET {{host}}/api/jugadores
 ###
 
 GET {{host}}/api/jugadores/1
 ###
 
-GET {{host}}/api/jugadores/999
+GET {{host}}/api/jugadores/2
+###
+
+GET {{host}}/api/jugadores/3
+###
+
+GET {{host}}/api/jugadores/4
+###
+
+GET {{host}}/api/jugadores/5
+###
+
+GET {{host}}/api/jugadores/6
 ###
 
 POST {{host}}/api/jugadores
 Content-Type: application/json
 
 {
-    "nickname": "Shadow",
-    "nombre_real": "Carlos Ramirez",
+    "nickname": "Jombriel",
+    "nombre_real": "Axel Ballesteros",
+    "pais": "Colombia",
+    "rol": "Top",
+    "estado": "inactivo"
+}
+###
+
+GET {{host}}/api/jugadores
+### 
+
+PUT {{host}}/api/jugadores/7
+Content-Type: application/json
+
+{
+    "nickname": "Nobody",
+    "nombre_real": "John Doe",
+    "pais": "Estados Unidos",
+    "rol": "Support",
+    "estado": "inactivo"
+}
+###
+
+GET {{host}}/api/jugadores/6
+###
+
+PUT {{host}}/api/jugadores/6
+Content-Type: application/json
+
+{
+    "nickname": "Jombriel",
+    "nombre_real": "Alex Ballesteros",
     "pais": "Colombia",
     "rol": "Top",
     "estado": "activo"
 }
 ###
 
-PUT {{host}}/api/jugadores/2
-Content-Type: application/json
-
-{
-    "nickname": "Zatanaz",
-    "nombre_real": "Valentin Lopez",
-    "pais": "Mexico",
-    "rol": "Mid",
-    "estado": "inactivo"
-}
+GET {{host}}/api/jugadores/6
 ###
 
-PUT {{host}}/api/jugadores/999
-Content-Type: application/application/json
-
-{
-    "nickname": "Unwey",
-    "nombre_real": "Juan Perez",
-    "pais": "Mexico",
-    "rol": "Mid",
-    "estado": "activo"
-}
+DELETE {{host}}/api/jugadores/7
 ###
 
-DELETE {{host}}/api/jugadores/3
+GET {{host}}/api/jugadores
 ###
 
-DELETE {{host}}/api/jugadores/999
+DELETE {{host}}/api/jugadores/6
+###
+
+GET {{host}}/api/jugadores
 ###
 
 
-# ---------- ROSTERS ----------
 
 GET {{host}}/api/rosters
+###
+
+GET {{host}}/api/rosters/2
 ###
 
 GET {{host}}/api/rosters/1
 ###
 
-GET {{host}}/api/rosters/999
-###
-
 POST {{host}}/api/rosters
-Content-Type: application/application/json
+Content-Type: application/json
 
 {
-    "nombre": "Mini-Warriors",
+    "nombre": "Mekkaz",
+    "juego": "League Of Legends",
+    "tipo": "Principal",
+    "temporada": "2025"
+}
+###
+
+GET {{host}}/api/rosters
+###
+
+PUT {{host}}/api/rosters/3
+Content-Type: application/json
+
+{
+    "nombre": "Anonymous",
     "juego": "League Of Legends",
     "tipo": "Academia",
-    "temporada": "2026"
+    "temporada": "2001"
 }
 ###
 
-PUT {{host}}/api/rosters/1
+GET {{host}}/api/rosters
+###
+
+PUT {{host}}/api/rosters/2
 Content-Type: application/json
 
 {
-    "nombre": "Warriors Elite",
+    "nombre": "Mini-Mekkaz",
     "juego": "League Of Legends",
-    "tipo": "Principal",
-    "temporada": "2026"
+    "tipo": "Academia",
+    "temporada": "2025"
 }
 ###
 
-PUT {{host}}/api/rosters/999
-Content-Type: application/json
-
-{
-    "nombre": "Phantoms",
-    "juego": "League Of Legends",
-    "tipo": "Principal",
-    "temporada": "2026"
-}
+GET {{host}}/api/rosters
 ###
 
-DELETE {{host}}/api/rosters/999
+DELETE {{host}}/api/rosters/3
+###
+
+GET {{host}}/api/rosters
 ###
 
 DELETE {{host}}/api/rosters/2
 ###
 
+GET {{host}}/api/rosters
+###
 
-# ---------- ROSTERS_JUGADORES ----------
+
+
+GET {{host}}/api/rosters/2/jugadores
+###
 
 GET {{host}}/api/rosters/1/jugadores
 ###
 
-GET {{host}}/api/rosters/999/jugadores
+POST {{host}}/api/rosters/2/jugadores
+Content-Type: application/json
+
+{
+    "id_jugador": 6,
+    "rol_jugador": "Suplente"
+}
 ###
 
 POST {{host}}/api/rosters/1/jugadores
 Content-Type: application/json
 
 {
-    "id_jugador": 999,
-    "rol_jugador": "Titular"
+    "id_jugador": 7,
+    "rol_jugador": "Suplente"
 }
+###
+
+GET {{host}}/api/rosters/1/jugadores
 ###
 
 POST {{host}}/api/rosters/1/jugadores
 Content-Type: application/json
 
 {
-    "id_jugador": 1,
+    "id_jugador": 6,
+    "rol_jugador": "Suplente"
+}
+###
+
+GET {{host}}/api/rosters/1/jugadores
+###
+
+PUT {{host}}/api/rosters/2/jugadores/6
+Content-Type: application/json
+
+{
     "rol_jugador": "Titular"
 }
 ###
 
-POST {{host}}/api/rosters/1/jugadores/2
-Content-Type: application/application/json
 
-{
-    "rol_jugador": "Suplente"
-}
-###
-
-PUT {{host}}/api/rosters/1/jugadores/999
+PUT {{host}}/api/rosters/1/jugadores/7
 Content-Type: application/json
 
 {
-    "rol_jugador": "Suplente"
+    "rol_jugador": "Titular"
 }
 ###
 
-DELETE {{host}}/api/rosters/1/jugadores/3
+GET {{host}}/api/rosters/1/jugadores
 ###
 
-DELETE {{host}}/api/rosters/1/jugadores/999
+PUT {{host}}/api/rosters/1/jugadores/6
+Content-Type: application/json
+
+{
+    "rol_jugador": "Titular"
+}
+
+GET {{host}}/api/rosters/1/jugadores
+###
+
+DELETE {{host}}/api/rosters/2/jugadores/6
+###
+
+DELETE {{host}}/api/rosters/1/jugadores/7
+###
+
+GET {{host}}/api/rosters/1/jugadores
+###
+
+
+DELETE {{host}}/api/rosters/1/jugadores/6
+###
+
+GET {{host}}/api/rosters/1/jugadores
 ###

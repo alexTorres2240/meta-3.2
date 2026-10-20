@@ -4,11 +4,15 @@ const rostersModel = require('../models/rosters.model.js');
 const obtenerTodos = (req, res) => {
     try {
         const rosters = rostersModel.obtenerTodos();
-        res.json(rosters);
+
+        res.status(200).json({
+            success: true,
+            rosters
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error al obtener los rosters',
+            message: 'Error interno',
             error: error.message
         });
     }
@@ -22,15 +26,19 @@ const obtenerPorId = (req, res) => {
 
         if (!roster) {
             return res.status(404).json({
+                success: false,
                 mensaje: 'Roster no encontrado'
             });
         }
 
-        res.status(200).json(roster);
+        res.status(200).json({
+            success: true,
+            roster
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error al obtener roster',
+            message: 'Error interno',
             error: error.message
         });
     }
@@ -47,11 +55,14 @@ const crearRoster = (req, res) => {
         };
 
         const nuevoRoster = rostersModel.crearRoster(datos);
-        res.status(201).json(nuevoRoster); 
+        res.status(201).json({
+            success: true,
+            nuevoRoster
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error al crear roster',
+            message: 'Error interno',
             error: error.message
         });
     }
@@ -72,15 +83,19 @@ const actualizarRoster = (req, res) => {
 
         if (!rosterActualizado) {
             return res.status(404).json({
+                success: false,
                 message: 'Roster no encontrado'
             });
         }
 
-        res.json(rosterActualizado);
+        res.status(200).json({
+            success: true,
+            rosterActualizado
+        });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error al actualizar roster',
+            message: 'Error interno',
             error: error.message
         });
     }
@@ -98,14 +113,14 @@ const eliminarRoster = (req, res) => {
             });
         }
 
-        res.json({
-            message: 'Roster eliminado',
-            roster: rosterEliminado
+        res.status(204).json({
+            success: true,
+            rosterEliminado
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error al eliminar roster',
+            message: 'Error interno',
             error: error.message
         });
     }
