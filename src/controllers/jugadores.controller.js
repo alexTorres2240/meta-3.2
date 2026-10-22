@@ -1,17 +1,20 @@
-const jugadoresModel = require('../models/jugadores.model.js');
+const { Jugador } = require('../models');
+const { Op } = require('sequelize');
 
-// GET /jugadores - Listar todos los jugadores
-const obtenerTodos = (req, res) => {
+const obtenerTodos = async (req, res) => {
     try {
-        const jugadores = jugadoresModel.obtenerTodos();
-
-        if (!jugadores) {
-            return res.status(404).json({
-                success: false,
-                message: 'Jugadores no encontrados'
-            });
+        const { rol, estado, search } = req.query;
+        const where = {};
+        if (rol) where.rol = rol;
+        if (estado) where.estado = estado;
+        if (search) {
+            where[Op.or] = [
+                { nickname: { [Op.like]: `%${search}%` } },
+                { nombre_real: { [Op.like]: `%${search}%` } },
+                { pais: { [Op.like]: `%${search}%` } }
+            ];
         }
-
+        const jugadores = await Jugador.findAll();
         res.status(200).json({
             success: true,
             jugadores
@@ -19,120 +22,86 @@ const obtenerTodos = (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error interno',
             error: error.message
         });
     }
 };
 
-// GET /jugadores/{id} - Obtener detalle de un jugador
-const obtenerPorId = (req, res) => {
+const obtenerPorId = async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
-        const jugador = jugadoresModel.obtenerPorId(id);
-
+        const jugador = await Jugador.findByPk(req.params.id);
         if (!jugador) {
             return res.status(404).json({
-                success: false,
-                message: 'Jugador no encontrado'
+                success: false
             });
         }
-
         res.status(200).json({
             success: true,
             jugador
         });
-
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error interno',
             error: error.message
         });
     }
 };
 
-// POST /jugadores - Crear un jugador
-const crearJugador = (req, res) => {
+const crearJugador = async (req, res) => {
     try {
-        const datos = {
-            nickname: req.body.nickname,
-            nombre_real: req.body.nombre_real,
-            pais: req.body.pais,
-            rol: req.body.rol,
-            estado: req.body.estado
-        };
-        
-        const nuevoJugador = jugadoresModel.crearJugador(datos);
-
+        const jugador = await Jugador.create(req.body);
         res.status(201).json({
             success: true,
-            nuevoJugador
+            jugador
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error interno',
             error: error.message
         });
     }
 };
 
-// PUT /jugadores/{id} - Actualizar un jugador
-const actualizarJugador = (req, res) => {
+const actualizarJugador = async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
-
-        const datos = {
-            nickname: req.body.nickname,
-            nombre_real: req.body.nombre_real,
-            pais: req.body.pais,
-            rol: req.body.rol,
-            estado: req.body.estado
-        };
-
-        const jugadorActualizado = jugadoresModel.actualizarJugador(id, datos);
-
-        if (!jugadorActualizado) {
+        const [actualizado] = await Jugador.update(req.body, {
+            where: { id: req.params.id }
+        });
+        if (!actualizado) {
             return res.status(404).json({
-                success: false,
-                message: 'Jugador no encontrado'
+                success: false
             });
         }
-
+        const jugador = await Jugador.findByPk(req.params.id);
         res.status(200).json({
             success: true,
-            jugadorActualizado
+            jugador
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error al actualizar al jugador',
             error: error.message
         });
     }
 };
 
-// DELETE /jugadores/{id} - Eliminar un jugador
-const eliminarJugador = (req, res) => {
+const eliminarJugador = async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
-        const jugadorEliminado = jugadoresModel.eliminarJugador(id);
-
-        if (!jugadorEliminado) {
+        const eliminado = await Jugador.destroy({
+            where: { id: req.params.id }
+        });
+        if (!eliminado) {
             return res.status(404).json({
-                message: 'Jugador no encontrado'
+                success: false
             });
         }
-
         res.status(204).json({
             success: true,
-            jugador: jugadorEliminado
-        });
+            eliminado
+        }).send();
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error al eliminar al jugador',
             error: error.message
         });
     }

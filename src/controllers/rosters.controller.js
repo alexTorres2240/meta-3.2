@@ -1,10 +1,12 @@
-const rostersModel = require('../models/rosters.model.js');
+const { Roster } = require('../models');
 
-// GET /rosters - Listar todos los rosters
-const obtenerTodos = (req, res) => {
+const obtenerTodos = async (req, res) => {
     try {
-        const rosters = rostersModel.obtenerTodos();
-
+        const { tipo, temporada} = req.query;
+        const where = {};
+        if (tipo) where.tipo = tipo;
+        if (temporada) where.temporada = temporada;
+        const rosters = await Roster.findAll({ where });
         res.status(200).json({
             success: true,
             rosters
@@ -12,25 +14,21 @@ const obtenerTodos = (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error interno',
             error: error.message
         });
     }
 };
 
-// GET /rosters/{id} - Obtener detalle de un roster (con jugadores)
-const obtenerPorId = (req, res) => {
+const obtenerPorId = async(req, res) => {
     try {
-        const id = parseInt(req.params.id);
-        const roster = rostersModel.obtenerPorId(id);
-
+        const roster = await Roster.findByPk(req.params.id, {
+            include: [{ association: 'jugadores' }]
+        });
         if (!roster) {
             return res.status(404).json({
-                success: false,
-                mensaje: 'Roster no encontrado'
+                success: false
             });
         }
-
         res.status(200).json({
             success: true,
             roster
@@ -38,89 +36,65 @@ const obtenerPorId = (req, res) => {
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error interno',
             error: error.message
         });
     }
 };
 
-// POST /rosters - Crear un roster
-const crearRoster = (req, res) => {
+const crearRoster = async (req, res) => {
     try {
-        const datos = {
-            nombre: req.body.nombre,
-            juego: req.body.juego,
-            tipo: req.body.tipo,
-            temporada: req.body.temporada
-        };
-
-        const nuevoRoster = rostersModel.crearRoster(datos);
+        const roster = await Roster.create(req.body);
         res.status(201).json({
             success: true,
-            nuevoRoster
+            roster
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error interno',
             error: error.message
         });
     }
 };
 
-// PUT /rosters/{id} - Actualizar un roster
-const actualizarRoster = (req, res) => {
+const actualizarRoster = async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
-        const datos = {
-            nombre: req.body.nombre,
-            juego: req.body.juego,
-            tipo: req.body.tipo,
-            temporada: req.body.temporada
-        };
-
-        const rosterActualizado = rostersModel.actualizarRoster(id, datos);
-
-        if (!rosterActualizado) {
+        const [actualizado] = await Roster.update(req.body, {
+            where: { id: req.params.id }
+        });
+        if (!actualizado) {
             return res.status(404).json({
-                success: false,
-                message: 'Roster no encontrado'
+                success: false
             });
         }
-
         res.status(200).json({
             success: true,
-            rosterActualizado
+            actualizado
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error interno',
             error: error.message
         });
     }
 };
 
-// DELETE /rosters/{id} - Eliminar un roster
-const eliminarRoster = (req, res) => {
+const eliminarRoster = async (req, res) => {
     try {
-        const id = parseInt(req.params.id);
-        const rosterEliminado = rostersModel.eliminarRoster(id);
-
-        if (!rosterEliminado) {
+        const eliminado = await Roster.destroy({
+            where: { id: req.params.id }
+        });
+        if (!eliminado) {
             return res.status(404).json({
-                message: 'Roster no encontrado'
+                success: false
             });
         }
-
         res.status(204).json({
             success: true,
-            rosterEliminado
-        });
+            eliminado
+        }).send();
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error interno',
             error: error.message
         });
     }

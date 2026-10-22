@@ -1,116 +1,96 @@
-const rostersJugadoresModel = require('../models/rosters_jugadores.model.js');
+const { RosterJugador, Jugador } = require('../models');
 
-
-// GET /rosters/{id}/jugadores - Listar jugadores un roster
-const listarJugadores = (req, res) => {
+const listarJugadores = async (req, res) => {
     try {
-        const id_roster = parseInt(req.params.id);
-        const jugadores = rostersJugadoresModel.listarJugadores(id_roster);
-
-        if (!jugadores) {
-            return res.status(404).json({
-                success: false,
-                message: 'Lista no encontrada'
-            });
-        }
-
+        const jugadores = await RosterJugador.findAll({
+            where: { id_roster: req.params.id },
+            include: [{ model: Jugador }]
+        });
         res.status(200).json({
-            succes: true,
+            success: true,
             jugadores
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error interno',
             error: error.message
         });
     }
 };
 
-// POST /rosters/{id}/jugadores - Asignar jugador a roster
-const asignarJugador = (req, res) => {
+const asignarJugador = async (req, res) => {
     try {
-        const datos = {
-            id_roster: parseInt(req.params.id),
-            id_jugador: parseInt(req.body.id_jugador),
-            rol_jugador: req.body.rol_jugador
-        };
-
-        const nuevaAsignacion = rostersJugadoresModel.asignarJugador(datos);
-
-        if (!nuevaAsignacion) {
-            return res.status(404).json({
-                success: false,
-                message: "Roster/Jugador no encontrado"
-            });
-        }
-
+        const asignacion = await RosterJugador.create({
+            id_roster: req.params.id,
+            id_jugador: req.body.id_jugador,
+            rol_en_roster: req.body.rol_en_roster || 'Suplente'
+        });
         res.status(201).json({
             success: true,
-            nuevaAsignacion
+            asignacion
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error interno',
             error: error.message
         });
     }
 };
 
-
-// PUT  /rosters/{id}/jugadores/{id_jugador} - Cambiar rol en roster (Titular/Suplente)
-const cambiarRol = (req, res) => {
+const cambiarRol = async (req, res) => {
     try {
-        const datos = {
-            id_roster: parseInt(req.params.id),
-            id_jugador: parseInt(req.params.id_jugador),
-            rol_jugador: req.body.rol_jugador
-        };
-        const asignacionActualizada = rostersJugadoresModel.cambiarRol(datos);
-
-        if (!asignacionActualizada) {
+        const [actualizado] = await RosterJugador.update(
+            { rol_en_roster: req.body.rol_en_roster },
+            {
+                where: {
+                    id_roster: req.params.id,
+                    id_jugador: req.params.id_jugador
+                }
+            }
+        );
+        if (!actualizado) {
             return res.status(404).json({
-                success: false,
-                message: 'Roster/Jugador no encontrado'
+                success: false
             });
         }
-
+        const asignacion = await RosterJugador.findOne({
+            where: {
+                id_roster: req.params.id,
+                id_jugador: req.params.id_jugador
+            }
+        });
         res.status(200).json({
             success: true,
-            asignacionActualizada
+            asignacion
         });
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error al cambiar rol de jugador',
             error: error.message
         });
     }
 };
 
-// DELETE /rosters/{id}/jugadores/{id_jugador} - Quitar jugador del roster
-const quitarJugador = (req, res) => {
+const quitarJugador = async (req, res) => {
     try {
-        const id_roster = parseInt(req.params.id);
-        const id_jugador = parseInt(req.params.id_jugador);
-        const asignacionEliminada = rostersJugadoresModel.quitarJugador(id_roster, id_jugador);
-
-        if (!asignacionEliminada) {
+        const eliminado = await RosterJugador.destroy({
+            where: {
+                id_roster: req.params.id,
+                id_jugador: req.params.id_jugador
+            }
+        });
+        if (!eliminado) {
             return res.status(404).json({
-                success: false,
-                message: 'Roster/Jugador no encontrado'
+                success: false
             });
         }
-
         res.status(204).json({
-            message: 'Jugador eliminado',
-            asignacion: asignacionEliminada
-        });
+            success: true,
+            eliminado
+        }).send();
     } catch (error) {
         res.status(500).json({
             success: false,
-            message: 'Error al quitar jugador',
             error: error.message
         });
     }

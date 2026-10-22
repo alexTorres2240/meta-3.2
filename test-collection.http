@@ -29,18 +29,18 @@ POST {{host}}/api/jugadores
 Content-Type: application/json
 
 {
-    "nickname": "Jombriel",
-    "nombre_real": "Axel Ballesteros",
-    "pais": "Colombia",
-    "rol": "Top",
-    "estado": "inactivo"
+    "nickname": "Iguano",
+    "nombre_real": "Dante Moreno",
+    "pais": "Cuba",
+    "rol": "Mid",
+    "estado": "activo"
 }
 ###
 
 GET {{host}}/api/jugadores
 ### 
 
-PUT {{host}}/api/jugadores/7
+PUT {{host}}/api/jugadores/6
 Content-Type: application/json
 
 {
@@ -55,7 +55,7 @@ Content-Type: application/json
 GET {{host}}/api/jugadores/6
 ###
 
-PUT {{host}}/api/jugadores/6
+PUT {{host}}/api/jugadores/1
 Content-Type: application/json
 
 {
@@ -168,8 +168,8 @@ POST {{host}}/api/rosters/1/jugadores
 Content-Type: application/json
 
 {
-    "id_jugador": 7,
-    "rol_jugador": "Suplente"
+    "id_jugador": 6,
+    "rol_jugador": "Titular"
 }
 ###
 
@@ -188,11 +188,11 @@ Content-Type: application/json
 GET {{host}}/api/rosters/1/jugadores
 ###
 
-PUT {{host}}/api/rosters/2/jugadores/6
+PUT {{host}}/api/rosters/1/jugadores/3
 Content-Type: application/json
 
 {
-    "rol_jugador": "Titular"
+    "rol_en_roster": "Titular"
 }
 ###
 
@@ -228,7 +228,7 @@ GET {{host}}/api/rosters/1/jugadores
 ###
 
 
-DELETE {{host}}/api/rosters/1/jugadores/6
+DELETE {{host}}/api/rosters/1/jugadores/5
 ###
 
 GET {{host}}/api/rosters/1/jugadores
