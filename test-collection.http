@@ -1,58 +1,25 @@
 @host = http://localhost:3000
 ###
 
-GET {{host}}/
-###
-
 GET {{host}}/api/jugadores
 ###
 
-GET {{host}}/api/jugadores/1
+GET {{host}}/api/jugadores?search=Mexico&rol=Jungle
 ###
 
-GET {{host}}/api/jugadores/2
-###
-
-GET {{host}}/api/jugadores/3
-###
-
-GET {{host}}/api/jugadores/4
-###
-
-GET {{host}}/api/jugadores/5
-###
-
-GET {{host}}/api/jugadores/6
+GET {{host}}/api/jugadores?estado=inactivo
 ###
 
 POST {{host}}/api/jugadores
 Content-Type: application/json
 
 {
-    "nickname": "Iguano",
-    "nombre_real": "Dante Moreno",
-    "pais": "Cuba",
-    "rol": "Mid",
+    "nickname": "Alyonsan",
+    "nombre_real": "Raul Perez",
+    "pais": "Mexico",
+    "rol": "Jungle",
     "estado": "activo"
 }
-###
-
-GET {{host}}/api/jugadores
-### 
-
-PUT {{host}}/api/jugadores/6
-Content-Type: application/json
-
-{
-    "nickname": "Nobody",
-    "nombre_real": "John Doe",
-    "pais": "Estados Unidos",
-    "rol": "Support",
-    "estado": "inactivo"
-}
-###
-
-GET {{host}}/api/jugadores/6
 ###
 
 PUT {{host}}/api/jugadores/1
@@ -60,176 +27,62 @@ Content-Type: application/json
 
 {
     "nickname": "Jombriel",
-    "nombre_real": "Alex Ballesteros",
+    "nombre_real": "Axel Ballesteros",
     "pais": "Colombia",
     "rol": "Top",
     "estado": "activo"
 }
 ###
 
-GET {{host}}/api/jugadores/6
+DELETE {{host}}/api/jugadores/11
 ###
-
-DELETE {{host}}/api/jugadores/7
-###
-
-GET {{host}}/api/jugadores
-###
-
-DELETE {{host}}/api/jugadores/6
-###
-
-GET {{host}}/api/jugadores
-###
-
 
 
 GET {{host}}/api/rosters
 ###
 
-GET {{host}}/api/rosters/2
-###
-
-GET {{host}}/api/rosters/1
+GET {{host}}/api/rosters/3
 ###
 
 POST {{host}}/api/rosters
 Content-Type: application/json
 
 {
-    "nombre": "Mekkaz",
-    "juego": "League Of Legends",
+    "nombre": "Frakaz",
     "tipo": "Principal",
-    "temporada": "2025"
+    "temporada": "2026"
 }
-###
-
-GET {{host}}/api/rosters
 ###
 
 PUT {{host}}/api/rosters/3
 Content-Type: application/json
 
 {
-    "nombre": "Anonymous",
-    "juego": "League Of Legends",
-    "tipo": "Academia",
-    "temporada": "2001"
+    "nombre": "Fracas ESFC",
+    "tipo": "Principal",
+    "temporada": "2026"
 }
-###
-
-GET {{host}}/api/rosters
-###
-
-PUT {{host}}/api/rosters/2
-Content-Type: application/json
-
-{
-    "nombre": "Mini-Mekkaz",
-    "juego": "League Of Legends",
-    "tipo": "Academia",
-    "temporada": "2025"
-}
-###
-
-GET {{host}}/api/rosters
-###
-
-DELETE {{host}}/api/rosters/3
-###
-
-GET {{host}}/api/rosters
 ###
 
 DELETE {{host}}/api/rosters/2
 ###
 
-GET {{host}}/api/rosters
+
+GET {{host}}/api/rosters/3/jugadores
 ###
 
-
-
-GET {{host}}/api/rosters/2/jugadores
-###
-
-GET {{host}}/api/rosters/1/jugadores
-###
-
-POST {{host}}/api/rosters/2/jugadores
+POST {{host}}/api/rosters/3/jugadores
 Content-Type: application/json
 
 {
-    "id_jugador": 6,
-    "rol_jugador": "Suplente"
+    "id_jugador": 21,
+    "rol_en_roster": "Suplente"
 }
 ###
 
-POST {{host}}/api/rosters/1/jugadores
-Content-Type: application/json
-
-{
-    "id_jugador": 6,
-    "rol_jugador": "Titular"
-}
-###
-
-GET {{host}}/api/rosters/1/jugadores
-###
-
-POST {{host}}/api/rosters/1/jugadores
-Content-Type: application/json
-
-{
-    "id_jugador": 6,
-    "rol_jugador": "Suplente"
-}
-###
-
-GET {{host}}/api/rosters/1/jugadores
-###
-
-PUT {{host}}/api/rosters/1/jugadores/3
+PUT {{host}}/api/rosters/3/jugadores/19
 Content-Type: application/json
 
 {
     "rol_en_roster": "Titular"
 }
-###
-
-
-PUT {{host}}/api/rosters/1/jugadores/7
-Content-Type: application/json
-
-{
-    "rol_jugador": "Titular"
-}
-###
-
-GET {{host}}/api/rosters/1/jugadores
-###
-
-PUT {{host}}/api/rosters/1/jugadores/6
-Content-Type: application/json
-
-{
-    "rol_jugador": "Titular"
-}
-
-GET {{host}}/api/rosters/1/jugadores
-###
-
-DELETE {{host}}/api/rosters/2/jugadores/6
-###
-
-DELETE {{host}}/api/rosters/1/jugadores/7
-###
-
-GET {{host}}/api/rosters/1/jugadores
-###
-
-
-DELETE {{host}}/api/rosters/1/jugadores/5
-###
-
-GET {{host}}/api/rosters/1/jugadores
-###

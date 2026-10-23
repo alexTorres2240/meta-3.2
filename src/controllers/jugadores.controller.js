@@ -14,7 +14,7 @@ const obtenerTodos = async (req, res) => {
                 { pais: { [Op.like]: `%${search}%` } }
             ];
         }
-        const jugadores = await Jugador.findAll();
+        const jugadores = await Jugador.findAll({ where });
         res.status(200).json({
             success: true,
             jugadores

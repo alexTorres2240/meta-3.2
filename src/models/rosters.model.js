@@ -13,7 +13,8 @@ const Roster = sequelize.define('Roster', {
     },
     juego: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: false,
+        defaultValue: 'League Of Legends'
     },
     tipo: {
         type: DataTypes.ENUM('Principal', 'Academia'),
