@@ -1,110 +1,40 @@
-const { Jugador } = require('../models');
-const { Op } = require('sequelize');
+const jugadoresService = require('../services/jugadores.service');
 
 const obtenerTodos = async (req, res) => {
-    try {
-        const { rol, estado, search } = req.query;
-        const where = {};
-        if (rol) where.rol = rol;
-        if (estado) where.estado = estado;
-        if (search) {
-            where[Op.or] = [
-                { nickname: { [Op.like]: `%${search}%` } },
-                { nombre_real: { [Op.like]: `%${search}%` } },
-                { pais: { [Op.like]: `%${search}%` } }
-            ];
-        }
-        const jugadores = await Jugador.findAll({ where });
-        res.status(200).json({
-            success: true,
-            jugadores
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+    const jugadores = await jugadoresService.listar(req.query);
+    res.status(200).json({
+        success: true,
+        jugadores
+    });
 };
 
 const obtenerPorId = async (req, res) => {
-    try {
-        const jugador = await Jugador.findByPk(req.params.id);
-        if (!jugador) {
-            return res.status(404).json({
-                success: false
-            });
-        }
-        res.status(200).json({
-            success: true,
-            jugador
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+    const jugador = await jugadoresService.obtenerPorId(req.params.id);
+    res.status(200).json({
+        success: true,
+        jugador
+    });
 };
 
 const crearJugador = async (req, res) => {
-    try {
-        const jugador = await Jugador.create(req.body);
-        res.status(201).json({
-            success: true,
-            jugador
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+    const jugador = await jugadoresService.crear(req.body);
+    res.status(201).json({
+        success: true,
+        jugador
+    });
 };
 
 const actualizarJugador = async (req, res) => {
-    try {
-        const [actualizado] = await Jugador.update(req.body, {
-            where: { id: req.params.id }
-        });
-        if (!actualizado) {
-            return res.status(404).json({
-                success: false
-            });
-        }
-        const jugador = await Jugador.findByPk(req.params.id);
-        res.status(200).json({
-            success: true,
-            jugador
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+    const jugador = await jugadoresService.actualizar(req.params.id, req.body);
+    res.status(200).json({
+        success: true,
+        jugador
+    });
 };
 
 const eliminarJugador = async (req, res) => {
-    try {
-        const eliminado = await Jugador.destroy({
-            where: { id: req.params.id }
-        });
-        if (!eliminado) {
-            return res.status(404).json({
-                success: false
-            });
-        }
-        res.status(204).json({
-            success: true,
-            eliminado
-        }).send();
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+    await jugadoresService.eliminar(req.params.id);
+    res.status(204).send();
 };
 
 module.exports = {

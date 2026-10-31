@@ -4,7 +4,7 @@
 GET {{host}}/api/jugadores
 ###
 
-GET {{host}}/api/jugadores?search=Mexico&rol=Jungle
+GET {{host}}/api/jugadores?rol=Support
 ###
 
 GET {{host}}/api/jugadores?estado=inactivo
@@ -14,73 +14,72 @@ POST {{host}}/api/jugadores
 Content-Type: application/json
 
 {
-    "nickname": "Alyonsan",
-    "nombre_real": "Raul Perez",
-    "pais": "Mexico",
-    "rol": "Jungle",
+    "nickname": "Kingsizer",
+    "nombre_real": "Mario Hebner",
+    "pais": "Alemania",
+    "rol": "Support",
     "estado": "activo"
 }
 ###
 
-PUT {{host}}/api/jugadores/1
+PUT {{host}}/api/jugadores/31
 Content-Type: application/json
 
 {
-    "nickname": "Jombriel",
-    "nombre_real": "Axel Ballesteros",
-    "pais": "Colombia",
-    "rol": "Top",
+    "nickname": "Rashito",
+    "nombre_real": "Miguel Suarez",
+    "pais": "Argentina",
+    "rol": "ADC",
     "estado": "activo"
 }
 ###
 
-DELETE {{host}}/api/jugadores/11
+DELETE {{host}}/api/jugadores/38
 ###
 
 
 GET {{host}}/api/rosters
 ###
 
-GET {{host}}/api/rosters/3
+GET {{host}}/api/rosters/6
 ###
 
 POST {{host}}/api/rosters
 Content-Type: application/json
 
 {
-    "nombre": "Frakaz",
-    "tipo": "Principal",
-    "temporada": "2026"
+    "nombre": "Mekka Dragonz",
+    "tipo": "Academia",
+    "temporada": "2025"
 }
 ###
 
-PUT {{host}}/api/rosters/3
+PUT {{host}}/api/rosters/7
 Content-Type: application/json
 
 {
-    "nombre": "Fracas ESFC",
-    "tipo": "Principal",
-    "temporada": "2026"
+    "nombre": "Era",
+    "tipo": "Academia",
+    "temporada": "2018"
 }
 ###
 
-DELETE {{host}}/api/rosters/2
+DELETE {{host}}/api/rosters/5
 ###
 
 
-GET {{host}}/api/rosters/3/jugadores
+GET {{host}}/api/rosters/5/jugadores
 ###
 
-POST {{host}}/api/rosters/3/jugadores
+POST {{host}}/api/rosters/6/jugadores
 Content-Type: application/json
 
 {
-    "id_jugador": 21,
-    "rol_en_roster": "Suplente"
+    "id_jugador": 36
 }
 ###
 
-PUT {{host}}/api/rosters/3/jugadores/19
+PUT {{host}}/api/rosters/5/jugadores/35
 Content-Type: application/json
 
 {

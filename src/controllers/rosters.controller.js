@@ -1,103 +1,40 @@
-const { Roster } = require('../models');
+const rostersService = require('../services/rosters.service');
 
 const obtenerTodos = async (req, res) => {
-    try {
-        const { tipo, temporada} = req.query;
-        const where = {};
-        if (tipo) where.tipo = tipo;
-        if (temporada) where.temporada = temporada;
-        const rosters = await Roster.findAll({ where });
-        res.status(200).json({
-            success: true,
-            rosters
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+    const rosters = await rostersService.listar(req.query);
+    res.status(200).json({
+        success: true,
+        rosters
+    });
 };
 
-const obtenerPorId = async(req, res) => {
-    try {
-        const roster = await Roster.findByPk(req.params.id, {
-            include: [{ association: 'jugadores' }]
-        });
-        if (!roster) {
-            return res.status(404).json({
-                success: false
-            });
-        }
-        res.status(200).json({
-            success: true,
-            roster
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+const obtenerPorId = async (req, res) => {
+    const roster = await rostersService.obtenerPorId(req.params.id);
+    res.status(200).json({
+        success: true,
+        roster
+    });
 };
 
 const crearRoster = async (req, res) => {
-    try {
-        const roster = await Roster.create(req.body);
-        res.status(201).json({
-            success: true,
-            roster
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+    const roster = await rostersService.crear(req.body);
+    res.status(201).json({
+        success: true,
+        roster
+    });
 };
 
 const actualizarRoster = async (req, res) => {
-    try {
-        const [actualizado] = await Roster.update(req.body, {
-            where: { id: req.params.id }
-        });
-        if (!actualizado) {
-            return res.status(404).json({
-                success: false
-            });
-        }
-        res.status(200).json({
-            success: true,
-            actualizado
-        });
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+    const roster = await rostersService.actualizar(req.params.id, req.body);
+    res.status(200).json({
+        success: true,
+        roster
+    });
 };
 
 const eliminarRoster = async (req, res) => {
-    try {
-        const eliminado = await Roster.destroy({
-            where: { id: req.params.id }
-        });
-        if (!eliminado) {
-            return res.status(404).json({
-                success: false
-            });
-        }
-        res.status(204).json({
-            success: true,
-            eliminado
-        }).send();
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+    await rostersService.eliminar(req.params.id);
+    res.status(204).send();
 };
 
 module.exports = {

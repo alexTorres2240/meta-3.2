@@ -10,6 +10,7 @@ app.use('/api', require('./routes/jugadores.routes'));
 app.use('/api', require('./routes/rosters.routes'));
 app.use('/api', require('./routes/rosters_jugadores.routes'));
 
-app.use((req, res) => res.status(404).json({ message: 'Ruta no encontrada' }));
+app.use((req, res) => res.status(404).json({message: 'Ruta no encontrada' }));
+app.use(require('./middlewares/errorHandler'));
 
 module.exports = app;
