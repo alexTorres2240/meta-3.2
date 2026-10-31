@@ -6,7 +6,7 @@ const {
 } = require('sequelize');
 
 const errorHandler = (err, req, res, next) => {
-    if (err.type === 'entity.parse.field') {
+    if (err.type === 'entity.parse.failed') {
         return res.status(400).json({
             success: false,
             error: 'JSON inválido en el body'
@@ -16,6 +16,23 @@ const errorHandler = (err, req, res, next) => {
         return res.status(err.status).json({
             success: false,
             error: err.message
+        });
+    }
+    if (err instanceof UniqueConstraintError) {
+        const campos = err.errors.map(e => e.path);
+        const mensaje = campos.includes('nickname')
+            ? 'El nickname ya existe'
+            : `Valor duplicado en: ${campos.join(', ')}`;
+        return res.status(409).json({
+            success: false,
+            error: mensaje
+        });
+    }
+    if (err instanceof ValidationError) {
+        const mensaje = err.errors.map(e => e.message).join('; ');
+        return res.status(400).json({
+            success: false,
+            error: mensaje
         });
     }
     if (err instanceof ForeignKeyConstraintError) {

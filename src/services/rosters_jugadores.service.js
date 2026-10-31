@@ -24,6 +24,7 @@ const asignar = async ({ id_roster, id_jugador, rol_en_roster }) => {
     if (!roster) throw errorCon('Jugador no encontrado', 404);
     const jugador = await Jugador.findByPk(id_jugador);
     if (!jugador) throw errorCon('Jugador no encontrado', 404);
+    if (jugador.estado !== 'activo') throw errorCon('El jugador no esta activo', 409);
     const nuevoRol = rol_en_roster || 'Suplente';
     if (!ROLES_EN_ROSTER.includes(nuevoRol)) {
         throw errorCon('rol_en_roster debe ser Titular o Suplente', 400);

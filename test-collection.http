@@ -17,12 +17,12 @@ Content-Type: application/json
     "nickname": "Kingsizer",
     "nombre_real": "Mario Hebner",
     "pais": "Alemania",
-    "rol": "Support",
+    "rol": "Top",
     "estado": "activo"
 }
 ###
 
-PUT {{host}}/api/jugadores/31
+PUT {{host}}/api/jugadores/50
 Content-Type: application/json
 
 {
@@ -34,14 +34,14 @@ Content-Type: application/json
 }
 ###
 
-DELETE {{host}}/api/jugadores/38
+DELETE {{host}}/api/jugadores/40
 ###
 
 
 GET {{host}}/api/rosters
 ###
 
-GET {{host}}/api/rosters/6
+GET {{host}}/api/rosters/3
 ###
 
 POST {{host}}/api/rosters
@@ -64,7 +64,7 @@ Content-Type: application/json
 }
 ###
 
-DELETE {{host}}/api/rosters/5
+DELETE {{host}}/api/rosters/11
 ###
 
 

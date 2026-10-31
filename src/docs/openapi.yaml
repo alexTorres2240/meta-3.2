@@ -1,0 +1,308 @@
+openapi: 3.0.3
+info:
+  title: API Jugadores y Rosters
+  version: 1.0.0
+  description: Gestión de jugadores, rosters y asignaciones.
+servers:
+  - url: http://localhost:3000
+
+tags:
+  - name: Jugadores
+  - name: Rosters
+  - name: Asignaciones
+  - name: Auxiliares
+
+paths:
+  /api/health:
+    get:
+      tags: [Auxiliares]
+      summary: Estado del servicio
+      responses:
+        '200': { description: Servicio activo }
+
+  /api/roles:
+    get:
+      tags: [Auxiliares]
+      summary: Roles de jugador permitidos
+      responses:
+        '200':
+          description: Lista de roles
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  roles:
+                    type: array
+                    items: { type: string, example: Jungle }
+
+  /api/estados:
+    get:
+      tags: [Auxiliares]
+      summary: Estados de jugador permitidos
+      responses:
+        '200': { description: Lista de estados }
+
+  /api/tipos-roster:
+    get:
+      tags: [Auxiliares]
+      summary: Tipos de roster permitidos
+      responses:
+        '200': { description: Lista de tipos }
+
+  /api/roles-roster:
+    get:
+      tags: [Auxiliares]
+      summary: Roles dentro de un roster
+      responses:
+        '200': { description: Titular / Suplente }
+
+  /api/jugadores:
+    get:
+      tags: [Jugadores]
+      summary: Lista jugadores
+      parameters:
+        - in: query
+          name: rol
+          schema: { type: string, enum: [Top, Jungle, Mid, ADC, Support] }
+        - in: query
+          name: estado
+          schema: { type: string, enum: [activo, inactivo] }
+        - in: query
+          name: search
+          schema: { type: string }
+          description: Búsqueda parcial por nickname, nombre_real o pais
+      responses:
+        '200':
+          description: Lista de jugadores
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  jugadores:
+                    type: array
+                    items: { $ref: '#/components/schemas/Jugador' }
+    post:
+      tags: [Jugadores]
+      summary: Crea un jugador
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/JugadorInput' }
+      responses:
+        '201':
+          description: Jugador creado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  jugador: { $ref: '#/components/schemas/Jugador' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409':
+          description: Nickname duplicado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/jugadores/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Jugadores]
+      summary: Obtiene un jugador
+      responses:
+        '200': { description: Jugador encontrado }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Jugadores]
+      summary: Actualiza un jugador
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/JugadorInput' }
+      responses:
+        '200': { description: Jugador actualizado }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { description: Nickname duplicado }
+    delete:
+      tags: [Jugadores]
+      summary: Elimina un jugador
+      responses:
+        '204': { description: Eliminado, sin cuerpo }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/rosters:
+    get:
+      tags: [Rosters]
+      summary: Lista rosters
+      parameters:
+        - in: query
+          name: tipo
+          schema: { type: string, enum: [Principal, Secundario] }
+        - in: query
+          name: temporada
+          schema: { type: string, example: '2026' }
+        - in: query
+          name: juego
+          schema: { type: string }
+      responses:
+        '200': { description: Lista de rosters }
+    post:
+      tags: [Rosters]
+      summary: Crea un roster
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RosterInput' }
+      responses:
+        '201': { description: Roster creado }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '409': { description: Nombre de roster duplicado }
+
+  /api/rosters/{id}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Rosters]
+      summary: Obtiene un roster con sus jugadores
+      responses:
+        '200': { description: Roster con asignaciones }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Rosters]
+      summary: Actualiza un roster
+      responses:
+        '200': { description: Roster actualizado }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    delete:
+      tags: [Rosters]
+      summary: Elimina un roster
+      responses:
+        '204': { description: Eliminado, sin cuerpo }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { description: Bloqueado por asignaciones existentes }
+
+  /api/rosters/{id}/jugadores:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+    get:
+      tags: [Asignaciones]
+      summary: Lista los jugadores de un roster
+      responses:
+        '200': { description: Asignaciones del roster }
+        '404': { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [Asignaciones]
+      summary: Asigna un jugador a un roster
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id_jugador]
+              properties:
+                id_jugador: { type: integer, example: 16 }
+                rol_en_roster: { type: string, enum: [Titular, Suplente], default: Suplente }
+      responses:
+        '201': { description: Asignación creada }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409':
+          description: >
+            Jugador ya asignado, roster con 5 titulares,
+            rol de titular ya ocupado, o jugador inactivo
+
+  /api/rosters/{id}/jugadores/{id_jugador}:
+    parameters:
+      - $ref: '#/components/parameters/Id'
+      - in: path
+        name: id_jugador
+        required: true
+        schema: { type: integer }
+    put:
+      tags: [Asignaciones]
+      summary: Cambia el rol de un jugador en el roster
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rol_en_roster]
+              properties:
+                rol_en_roster: { type: string, enum: [Titular, Suplente] }
+      responses:
+        '200': { description: Rol actualizado }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '409': { description: Límite de titulares o rol ya ocupado }
+    delete:
+      tags: [Asignaciones]
+      summary: Quita un jugador del roster
+      responses:
+        '204': { description: Asignación eliminada, sin cuerpo }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+components:
+  parameters:
+    Id:
+      in: path
+      name: id
+      required: true
+      schema: { type: integer, example: 5 }
+
+  schemas:
+    Jugador:
+      type: object
+      properties:
+        id: { type: integer, example: 16 }
+        nickname: { type: string, example: Maikelito }
+        nombre_real: { type: string, example: Miguel Ruiz }
+        pais: { type: string, example: Mexico }
+        rol: { type: string, enum: [Top, Jungle, Mid, ADC, Support] }
+        estado: { type: string, enum: [activo, inactivo] }
+    JugadorInput:
+      type: object
+      required: [nickname, nombre_real, pais, rol, estado]
+      properties:
+        nickname: { type: string }
+        nombre_real: { type: string }
+        pais: { type: string }
+        rol: { type: string, enum: [Top, Jungle, Mid, ADC, Support] }
+        estado: { type: string, enum: [activo, inactivo] }
+    RosterInput:
+      type: object
+      required: [nombre, tipo, temporada]
+      properties:
+        nombre: { type: string, example: Frakaz }
+        juego: { type: string, example: League Of Legends }
+        tipo: { type: string, enum: [Principal, Secundario] }
+        temporada: { type: string, example: '2026' }
+    Error:
+      type: object
+      properties:
+        success: { type: boolean, example: false }
+        error: { type: string, example: El nickname ya existe }
+
+  responses:
+    BadRequest:
+      description: Datos inválidos
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Recurso no encontrado
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
