@@ -1,5 +1,8 @@
-const { Op, EagerLoadingError } = require('sequelize');
-const { Roster, RosterJugador, Jugador } = require('../models');
+import Sequelize from 'sequelize';
+import modelos from '../models/index.js';
+
+const { Op } = Sequelize;
+const { Roster, RosterJugador, Jugador } = modelos;
 
 const MAX_TITULARES = 5;
 const ROLES_EN_ROSTER = ['Titular', 'Suplente'];
@@ -21,7 +24,7 @@ const listarPorRoster = async (id_roster) => {
 
 const asignar = async ({ id_roster, id_jugador, rol_en_roster }) => {
     const roster = await Roster.findByPk(id_roster);
-    if (!roster) throw errorCon('Jugador no encontrado', 404);
+    if (!roster) throw errorCon('Roster no encontrado', 404);
     const jugador = await Jugador.findByPk(id_jugador);
     if (!jugador) throw errorCon('Jugador no encontrado', 404);
     if (jugador.estado !== 'activo') throw errorCon('El jugador no esta activo', 409);
@@ -53,6 +56,15 @@ const cambiarRol = async ({ id_roster, id_jugador, rol_en_roster }) => {
     if (!asignacion) throw errorCon('Asignacion no encontrada', 404);
     if (rol_en_roster === 'Titular' && asignacion.rol_en_roster !== 'Titular') {
         const jugador = await Jugador.findByPk(id_jugador);
+
+        if (!jugador) {
+            throw errorCon('Jugador no encontrado', 404);
+        }
+
+        if (jugador.estado !== 'activo') {
+            throw errorCon('El jugador no esta activo', 409);
+        }
+
         await validarTitular(id_roster, jugador.rol, id_jugador);
     }
     await asignacion.update({ rol_en_roster });
@@ -84,7 +96,7 @@ const validarTitular = async (id_roster, rolJugador, idJugadorExcluir = null) =>
     }
 };
 
-module.exports = {
+export default {
     listarPorRoster,
     asignar,
     cambiarRol,

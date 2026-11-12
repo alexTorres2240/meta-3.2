@@ -146,7 +146,7 @@ paths:
       parameters:
         - in: query
           name: tipo
-          schema: { type: string, enum: [Principal, Secundario] }
+          schema: { type: string, enum: [Principal, Academia] }
         - in: query
           name: temporada
           schema: { type: string, example: '2026' }

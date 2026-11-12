@@ -1,4 +1,4 @@
-const jugadoresService = require('../services/jugadores.service');
+import jugadoresService from '../services/jugadores.service.js';
 
 const obtenerTodos = async (req, res) => {
     const jugadores = await jugadoresService.listar(req.query);
@@ -37,7 +37,7 @@ const eliminarJugador = async (req, res) => {
     res.status(204).send();
 };
 
-module.exports = {
+export default {
     obtenerTodos,
     obtenerPorId,
     crearJugador,

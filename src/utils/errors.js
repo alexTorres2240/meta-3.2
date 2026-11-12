@@ -54,4 +54,10 @@ const manejarError = (res, error, mensajeGenerico = 'Error interno') => {
     res.status(500).json({ success: false, message: mensajeGenerico, error: error.message });
 };
 
-module.exports = { AppError, parsearId, requerir, limpiar, manejarError };
+export {
+    AppError,
+    parsearId,
+    requerir,
+    limpiar,
+    manejarError
+};

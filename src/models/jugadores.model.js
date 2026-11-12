@@ -25,7 +25,7 @@ const Jugador = sequelize.define('Jugador', {
         allowNull: false
     },
     estado: {
-        type: DataTypes.ENUM('Activo', 'Inactivo'),
+        type: DataTypes.ENUM('activo', 'inactivo'),
         allowNull: false
     }
 }, {

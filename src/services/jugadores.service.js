@@ -1,17 +1,26 @@
-const { Op } = require('sequelize');
-const { Jugador } = require('../models');
+import Sequelize from 'sequelize';
+import modelos from '../models/index.js';
+
+const { Op } = Sequelize;
+const { Jugador } = modelos;
 
 const CAMPOS_REQUERIDOS = ['nickname', 'nombre_real', 'pais', 'rol', 'estado'];
 const ROLES_VALIDOS = ['Top', 'Jungle', 'Mid', 'ADC', 'Support'];
 const ESTADOS_VALIDOS = ['activo', 'inactivo'];
 
+const errorCon = (mensaje, status) => {
+    const error = new Error(mensaje);
+    error.status = status;
+    return error;
+};
+
 const validarJugador = (datos) => {
     const faltantes = CAMPOS_REQUERIDOS.filter(c => !datos[c]);
     if (faltantes.length) {
-        throw errorCon (`Campos requeridos: ${faltabtes.join(', ')}`, 400);
+        throw errorCon(`Campos requeridos: ${faltantes.join(', ')}`, 400);
     }
     if (!ROLES_VALIDOS.includes(datos.rol)) {
-        throw errorCon(`Rol invalido. Permitidos: ${ROVLES_VALIDOS.join(', ')}`, 400);
+        throw errorCon(`Rol invalido. Permitidos: ${ROLES_VALIDOS.join(', ')}`, 400);
     }
     if (!ESTADOS_VALIDOS.includes(datos.estado)) {
         throw errorCon(`Estado invalido. Permitidos: ${ESTADOS_VALIDOS.join(', ')}`, 400);
@@ -24,9 +33,9 @@ const listar = async({ rol, estado, search } = {}) => {
     if (estado) where. estado = estado;
     if (search) {
         where[Op.or] = [
-            { nickname: { [Op.like]: `%${search}` } },
-            { nombre_real: { [Op.like]: `%${search}` } },
-            { pais: { [Op.like]: `%${search}` } }
+            { nickname: { [Op.like]: `%${search}%` } },
+            { nombre_real: { [Op.like]: `%${search}%` } },
+            { pais: { [Op.like]: `%${search}%` } }
         ];
     }
     return Jugador.findAll({ where });
@@ -64,7 +73,7 @@ const eliminar = async (id) => {
     await jugador.destroy();
 }
 
-module.exports = {
+export default {
     listar,
     obtenerPorId,
     crear,

@@ -1,4 +1,6 @@
-const { Roster } = require('../models');
+import modelos from '../models/index.js';
+
+const { Roster } = modelos;
 
 const listar = async({ tipo, temporada, juego } = {}) => {
     const where = {};
@@ -39,7 +41,7 @@ const eliminar = async (id) => {
     await roster.destroy();
 };
 
-module.exports = {
+export default {
     listar,
     obtenerPorId,
     crear,

@@ -1,4 +1,4 @@
-const rostersJugadoresService = require('../services/rosters_jugadores.service');
+import rostersJugadoresService from '../services/rosters_jugadores.service.js';
 
 const listarJugadores = async (req, res) => {
     const jugadores = await rostersJugadoresService.listarPorRoster(req.params.id);
@@ -8,13 +8,15 @@ const listarJugadores = async (req, res) => {
     });
 };
 
+
 const asignarJugador = async (req, res) => {
     const asignacion = await rostersJugadoresService.asignar({
         id_roster: req.params.id,
         id_jugador: req.body.id_jugador,
         rol_en_roster: req.body.rol_en_roster
     });
-    res.status(200).json({
+
+    res.status(201).json({
         success: true,
         asignacion
     });
@@ -40,7 +42,7 @@ const quitarJugador = async (req, res) => {
     res.status(204).send();
 };
 
-module.exports = {
+export default {
     listarJugadores,
     asignarJugador,
     cambiarRol,

@@ -1,4 +1,4 @@
-const rostersService = require('../services/rosters.service');
+import rostersService from '../services/rosters.service.js';
 
 const obtenerTodos = async (req, res) => {
     const rosters = await rostersService.listar(req.query);
@@ -37,7 +37,7 @@ const eliminarRoster = async (req, res) => {
     res.status(204).send();
 };
 
-module.exports = {
+export default {
     obtenerTodos,
     obtenerPorId,
     crearRoster,

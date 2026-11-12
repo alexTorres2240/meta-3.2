@@ -1,9 +1,11 @@
+import Sequelize from 'sequelize';
+
 const {
     ValidationError,
     UniqueConstraintError,
     ForeignKeyConstraintError,
     DatabaseError
-} = require('sequelize');
+} = Sequelize;
 
 const errorHandler = (err, req, res, next) => {
     if (err.type === 'entity.parse.failed') {
@@ -55,4 +57,4 @@ const errorHandler = (err, req, res, next) => {
     });
 };
 
-module.exports = errorHandler;
+export default errorHandler;
