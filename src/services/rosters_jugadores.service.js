@@ -32,9 +32,15 @@ const asignar = async ({ id_roster, id_jugador, rol_en_roster }) => {
     if (!ROLES_EN_ROSTER.includes(nuevoRol)) {
         throw errorCon('rol_en_roster debe ser Titular o Suplente', 400);
     }
-    const yaAsignado = await RosterJugador.findOne({ where: { id_roster, id_jugador } });
+    const yaAsignado = await RosterJugador.findOne({
+        where: { id_jugador }
+    });
+
     if (yaAsignado) {
-        throw errorCon('El jugador ya esta en este roster', 409);
+        throw errorCon(
+            'El jugador ya pertenece a un roster',
+            409
+        );
     }
     if (nuevoRol === 'Titular') {
         await validarTitular(id_roster, jugador.rol);

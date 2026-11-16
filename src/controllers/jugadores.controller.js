@@ -37,10 +37,19 @@ const eliminarJugador = async (req, res) => {
     res.status(204).send();
 };
 
+const obtenerDisponibles = async (req, res) => {
+    const jugadores = await jugadoresService.disponibles();
+    res.status(200).json({
+        success: true,
+        jugadores
+    });
+};
+
 export default {
     obtenerTodos,
     obtenerPorId,
     crearJugador,
     actualizarJugador,
-    eliminarJugador
+    eliminarJugador,
+    obtenerDisponibles
 };

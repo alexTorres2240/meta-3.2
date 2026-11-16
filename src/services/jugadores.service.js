@@ -2,7 +2,7 @@ import Sequelize from 'sequelize';
 import modelos from '../models/index.js';
 
 const { Op } = Sequelize;
-const { Jugador } = modelos;
+const { Jugador, RosterJugador } = modelos;
 
 const CAMPOS_REQUERIDOS = ['nickname', 'nombre_real', 'pais', 'rol', 'estado'];
 const ROLES_VALIDOS = ['Top', 'Jungle', 'Mid', 'ADC', 'Support'];
@@ -73,10 +73,33 @@ const eliminar = async (id) => {
     await jugador.destroy();
 }
 
+const disponibles = async () => {
+    const asignaciones = await RosterJugador.findAll({
+        attributes: ['id_jugador'],
+        raw: true
+    });
+    const idsAsignados = [
+        ...new Set(asignaciones.map(a => a.id_jugador))
+    ];
+    const where = {
+        estado: 'activo'
+    };
+    if (idsAsignados.length > 0) {
+        where.id = {
+            [Op.notIn]: idsAsignados
+        };
+    }
+    return Jugador.findAll({
+        where,
+        order: [['nickname', 'ASC']]
+    });
+};
+
 export default {
     listar,
     obtenerPorId,
     crear,
     actualizar,
-    eliminar
+    eliminar,
+    disponibles
 };
