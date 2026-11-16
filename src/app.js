@@ -16,6 +16,7 @@ import errorHandler from './middlewares/errorHandler.js';
 
 import { autenticar, soloAdmin } from './middlewares/auth.js';
 import { verificarCsrf } from './middlewares/csrf.js';
+import googleRoutes from './routes/google.routes.js';
 
 const app = express();
 
@@ -41,6 +42,7 @@ app.get('/', (req, res) => {
 
 // Rutas públicas auxiliares
 app.use('/api', auxiliaresRoutes);
+app.use('/auth/google', googleRoutes);
 
 // Autenticación y cierre de sesión
 app.use('/api', authRoutes);

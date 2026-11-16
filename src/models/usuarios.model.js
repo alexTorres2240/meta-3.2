@@ -19,7 +19,12 @@ const Usuario = sequelize.define('Usuario', {
     },
     password_hash: {
         type: DataTypes.STRING,
-        allowNull: false
+        allowNull: true
+    },
+    google_sub: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        unique: true
     },
     rol: {
         type: DataTypes.ENUM('admin', 'usuario'),

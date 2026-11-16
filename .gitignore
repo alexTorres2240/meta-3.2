@@ -1,3 +1,15 @@
+# Dependencias
 node_modules/
-*.sqlite
+frontend/node_modules/
+
+# Variables privadas
 .env
+.env.*
+!.env.example
+
+# Archivos generados
+frontend/dist/
+*.log
+
+# Bases SQLite
+*.sqlite
