@@ -8,6 +8,7 @@ import cors from 'cors';
 import authRoutes from './routes/auth.routes.js';
 
 import auxiliaresRoutes from './routes/auxiliares.routes.js';
+import googleRoutes from './routes/google.routes.js';
 import jugadoresRoutes from './routes/jugadores.routes.js';
 import rostersRoutes from './routes/rosters.routes.js';
 import rostersJugadoresRoutes from './routes/rosters_jugadores.routes.js';
