@@ -3,7 +3,6 @@
 import { reactive, ref, onMounted } from 'vue';
 import { api } from '../services/api.js';
 
-// Determina si vamos a crear un jugador o un roster
 const props = defineProps({
     tipo: {
         type: String,
@@ -12,14 +11,12 @@ const props = defineProps({
     }
 });
 
-// Eventos que recibirá App.vue
 const emit = defineEmits(['cerrar', 'creado']);
 
 const guardando = ref(false);
 const error = ref('');
 const primerCampo = ref(null);
 
-// Datos del formulario de jugadores
 const jugador = reactive({
     nickname: '',
     nombre_real: '',
@@ -28,7 +25,6 @@ const jugador = reactive({
     estado: 'activo'
 });
 
-// Datos del formulario de rosters
 const roster = reactive({
     nombre: '',
     juego: 'League Of Legends',
@@ -36,27 +32,21 @@ const roster = reactive({
     temporada: ''
 });
 
-// Cerrar formulario
 function cerrar() {
     if (!guardando.value) {
         emit('cerrar');
     }
 }
 
-// Guardar registro en MySQL mediante la API
 async function guardar() {
     if (guardando.value) return;
-
     error.value = '';
     guardando.value = true;
-
     try {
         let ruta;
         let datos;
-
         if (props.tipo === 'jugador') {
             ruta = '/jugadores';
-
             datos = {
                 nickname: jugador.nickname.trim(),
                 nombre_real: jugador.nombre_real.trim(),
@@ -64,10 +54,8 @@ async function guardar() {
                 rol: jugador.rol,
                 estado: jugador.estado
             };
-
         } else {
             ruta = '/rosters';
-
             datos = {
                 nombre: roster.nombre.trim(),
                 juego: roster.juego.trim(),
@@ -75,32 +63,24 @@ async function guardar() {
                 temporada: roster.temporada.trim()
             };
         }
-
-        // Validar campos vacíos
         if (Object.values(datos).some(
             valor => !String(valor).trim()
         )) {
             throw new Error('Todos los campos son obligatorios.');
         }
-
-        // Enviar POST con JWT y CSRF mediante api.js
         const respuesta = await api(ruta, {
             method: 'POST',
             body: datos
         });
-
         if (!respuesta?.success) {
             throw new Error('La API no confirmó el registro.');
         }
-
-        // Avisar que el registro fue creado
         emit('creado', {
             tipo: props.tipo,
             registro: props.tipo === 'jugador'
                 ? respuesta.jugador
                 : respuesta.roster
         });
-
     } catch (err) {
         error.value = err.message || 'Error al guardar el registro.';
     } finally {
@@ -108,7 +88,6 @@ async function guardar() {
     }
 }
 
-// Colocar el cursor en el primer campo
 onMounted(() => {
     primerCampo.value?.focus();
 });
@@ -146,7 +125,6 @@ onMounted(() => {
             </header>
 
             <form @submit.prevent="guardar">
-                <!-- FORMULARIO JUGADOR -->
                 <template v-if="tipo === 'jugador'">
                     <div class="campo">
                         <label for="nickname">Nickname</label>
@@ -160,7 +138,6 @@ onMounted(() => {
                             required
                         />
                     </div>
-
                     <div class="campo">
                         <label for="nombre_real">Nombre real</label>
                         <input
@@ -172,7 +149,6 @@ onMounted(() => {
                             required
                         />
                     </div>
-
                     <div class="campo">
                         <label for="pais">País</label>
                         <input
@@ -184,7 +160,6 @@ onMounted(() => {
                             required
                         />
                     </div>
-
                     <div class="campo">
                         <label for="rol">Posición</label>
                         <select
@@ -202,7 +177,6 @@ onMounted(() => {
                             <option value="Support">Support</option>
                         </select>
                     </div>
-
                     <div class="campo">
                         <label for="estado">Estado</label>
                         <select
@@ -215,8 +189,6 @@ onMounted(() => {
                         </select>
                     </div>
                 </template>
-
-                <!-- FORMULARIO ROSTER -->
                 <template v-else>
                     <div class="campo">
                         <label for="nombre">Nombre del roster</label>
@@ -230,7 +202,6 @@ onMounted(() => {
                             required
                         />
                     </div>
-
                     <div class="campo">
                         <label for="juego">Juego</label>
                         <input
@@ -241,7 +212,6 @@ onMounted(() => {
                             required
                         />
                     </div>
-
                     <div class="campo">
                         <label for="tipo">Tipo de roster</label>
                         <select
@@ -256,7 +226,6 @@ onMounted(() => {
                             <option value="Academia">Academia</option>
                         </select>
                     </div>
-
                     <div class="campo">
                         <label for="temporada">Temporada</label>
                         <input
@@ -269,13 +238,9 @@ onMounted(() => {
                         />
                     </div>
                 </template>
-
-                <!-- MENSAJE DE ERROR -->
                 <p v-if="error" class="error" role="alert">
                     {{ error }}
                 </p>
-
-                <!-- BOTONES -->
                 <footer class="botones">
                     <button
                         type="button"
@@ -285,7 +250,6 @@ onMounted(() => {
                     >
                         Cancelar
                     </button>
-
                     <button
                         type="submit"
                         class="btn guardar"
@@ -304,7 +268,7 @@ onMounted(() => {
     position: fixed;
     inset: 0;
     z-index: 1000;
-    background: rgba(15, 23, 42, 0.55);
+    background: rgba(0, 0, 0, 0.78);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -313,15 +277,18 @@ onMounted(() => {
 }
 
 .modal {
-    background: white;
     width: 100%;
     max-width: 480px;
     max-height: calc(100vh - 32px);
     overflow-y: auto;
+    box-sizing: border-box;
     padding: 28px;
     border-radius: 14px;
-    box-shadow: 0 10px 40px #00000030;
-    box-sizing: border-box;
+    border: 1px solid #78613b;
+    background: #4b4b4b;
+    color: #f5f3ed;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 18px 55px rgba(0, 0, 0, 0.55);
 }
 
 .encabezado {
@@ -335,21 +302,26 @@ onMounted(() => {
 .encabezado h2 {
     margin: 0;
     font-size: 24px;
+    color: #f0c86d;
 }
 
 .encabezado p {
     margin: 8px 0 0;
-    color: #64748b;
+    color: #d2ccc0;
     font-size: 14px;
 }
 
 .cerrar {
     background: transparent;
-    color: #64748b;
+    color: #e5c071;
     border: none;
     font-size: 28px;
     cursor: pointer;
     padding: 0 4px;
+}
+
+.cerrar:hover:not(:disabled) {
+    color: #ffffff;
 }
 
 .campo {
@@ -362,60 +334,87 @@ onMounted(() => {
 .campo label {
     font-size: 14px;
     font-weight: 600;
-    color: #334155;
+    color: #f0c86d;
 }
 
 .campo input,
 .campo select {
     width: 100%;
     padding: 12px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #837356;
     border-radius: 7px;
     font-size: 15px;
     box-sizing: border-box;
-    background: white;
-    color: #1e293b;
+    background: #333333;
+    color: #ffffff;
+    color-scheme: dark;
+}
+
+.campo input::placeholder {
+    color: #bdb6a8;
+    opacity: 1;
 }
 
 .campo input:focus,
 .campo select:focus {
-    outline: 2px solid #93c5fd;
-    border-color: #2563eb;
+    outline: 2px solid #e2b85a;
+    outline-offset: 1px;
+    border-color: #e2b85a;
 }
 
 .botones {
     display: flex;
     justify-content: flex-end;
+    flex-wrap: wrap;
     gap: 10px;
     margin-top: 26px;
 }
 
 .btn {
     padding: 11px 20px;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 7px;
     cursor: pointer;
     font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.15s, border-color 0.15s;
 }
 
 .cancelar {
-    background: #e2e8f0;
-    color: #334155;
+    background: #626262;
+    color: #ffffff;
+    border-color: #858585;
+}
+
+.cancelar:hover:not(:disabled) {
+    background: #747474;
 }
 
 .guardar {
-    background: #2563eb;
-    color: white;
+    background: #c79b3b;
+    color: #212121;
 }
 
-.btn:disabled {
-    opacity: 0.6;
+.guardar:hover:not(:disabled) {
+    background: #e2b85a;
+}
+
+.btn:focus-visible,
+.cerrar:focus-visible {
+    outline: 2px solid #f0c86d;
+    outline-offset: 3px;
+}
+
+.btn:disabled,
+.cerrar:disabled {
+    opacity: 0.55;
     cursor: not-allowed;
 }
 
 .error {
-    background: #fef2f2;
-    color: #b91c1c;
+    background: #4d2b2b;
+    color: #ffb4af;
+    border: 1px solid #a75a5a;
     padding: 12px;
     border-radius: 7px;
     font-size: 14px;

@@ -1,3 +1,20 @@
 node_modules/
 *.sqlite
 .env
+frontend/node_modules/
+
+# Variables privadas
+.env
+.env.*
+!.env.example
+
+# Archivos generados
+frontend/dist/
+*.log
+
+# Bases SQLite
+*.sqlite
+
+frontend/.env.e2e
+frontend/test-results/
+frontend/playwright-report/

@@ -93,3 +93,45 @@ const count = ref(0)
   <div class="ticks"></div>
   <section id="spacer"></section>
 </template>
+
+<style scoped>
+/* Componente de ejemplo de Vite: tema opcional, no requerido por Rosters */
+#center,
+#next-steps {
+    background: #4b4b4b;
+    color: #f5f3ed;
+    border: 1px solid #665944;
+    border-radius: 12px;
+    padding: 24px;
+    margin: 20px auto;
+    max-width: 850px;
+    font-family: Arial, sans-serif;
+}
+
+#center h1,
+#next-steps h2 {
+    color: #f0c86d;
+}
+
+#center p,
+#next-steps p {
+    color: #d2ccc0;
+}
+
+#next-steps a {
+    color: #f0c86d;
+}
+
+button.counter {
+    background: #c79b3b;
+    color: #212121;
+    border: 0;
+    border-radius: 7px;
+    padding: 10px 18px;
+    cursor: pointer;
+}
+
+button.counter:hover {
+    background: #e2b85a;
+}
+</style>

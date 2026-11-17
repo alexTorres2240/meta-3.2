@@ -2,7 +2,7 @@
 <script setup>
 import Prevista from './Prevista.vue';
 
-// Datos recibidos desde App.vue
+
 defineProps({
     jugadores: {
         type: Array,
@@ -11,10 +11,13 @@ defineProps({
     rosters: {
         type: Array,
         default: () => []
+    },
+    esAdmin: {
+        type: Boolean,
+        default: false
     }
 });
 
-// Eventos disponibles para futuras funciones
 const emit = defineEmits([
     'actualizar',
     'nuevo-jugador',
@@ -23,7 +26,6 @@ const emit = defineEmits([
     'seleccionar-roster'
 ]);
 
-// Columnas para los jugadores
 const columnasJugadores = [
     { campo: 'id', titulo: 'ID' },
     { campo: 'nickname', titulo: 'Nickname' },
@@ -33,7 +35,6 @@ const columnasJugadores = [
     { campo: 'estado', titulo: 'Estado' }
 ];
 
-// Columnas para los rosters
 const columnasRosters = [
     { campo: 'id', titulo: 'ID' },
     { campo: 'nombre', titulo: 'Nombre' },
@@ -45,7 +46,6 @@ const columnasRosters = [
 
 <template>
     <div>
-        <!-- TABLA DE JUGADORES -->
         <Prevista
             titulo="Jugadores"
             :columnas="columnasJugadores"
@@ -54,6 +54,7 @@ const columnasRosters = [
         >
             <template #acciones>
                 <button
+                    v-if="esAdmin"
                     class="btn principal"
                     @click="emit('nuevo-jugador')"
                 >
@@ -61,8 +62,6 @@ const columnasRosters = [
                 </button>
             </template>
         </Prevista>
-
-        <!-- TABLA DE ROSTERS -->
         <Prevista
             titulo="Rosters"
             :columnas="columnasRosters"
@@ -71,12 +70,12 @@ const columnasRosters = [
         >
             <template #acciones>
                 <button
+                    v-if="esAdmin"
                     class="btn principal"
                     @click="emit('nuevo-roster')"
                 >
                     + Nuevo roster
                 </button>
-
             </template>
         </Prevista>
     </div>
@@ -85,23 +84,41 @@ const columnasRosters = [
 <style scoped>
 .btn {
     padding: 10px 16px;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 7px;
     font-size: 14px;
+    font-weight: 600;
     cursor: pointer;
+    transition: background-color 0.15s, transform 0.15s;
 }
 
 .principal {
-    background: #2563eb;
-    color: white;
+    background: #c79b3b;
+    color: #212121;
+}
+
+.principal:hover:not(:disabled) {
+    background: #e2b85a;
+    transform: translateY(-1px);
 }
 
 .secundario {
-    background: #e2e8f0;
-    color: #334155;
+    background: #626262;
+    color: #ffffff;
+    border-color: #858585;
 }
 
-.btn:hover {
-    opacity: 0.85;
+.secundario:hover:not(:disabled) {
+    background: #747474;
+}
+
+.btn:focus-visible {
+    outline: 2px solid #f0c86d;
+    outline-offset: 3px;
+}
+
+.btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 </style>

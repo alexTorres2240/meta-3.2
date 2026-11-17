@@ -4,6 +4,7 @@ import { computed, reactive, ref, onMounted } from 'vue';
 import { api } from '../services/api.js';
 import IntegrantesRoster from './IntegrantesRoster.vue';
 
+
 const props = defineProps({
     tipo: {
         type: String,
@@ -13,8 +14,13 @@ const props = defineProps({
     registro: {
         type: Object,
         required: true
+    },
+    esAdmin: {
+        type: Boolean,
+        default: false
     }
 });
+
 
 const emit = defineEmits([
     'cerrar',
@@ -82,7 +88,6 @@ const ruta = computed(() =>
         : `/rosters/${props.registro.id}`
 );
 
-// Cerrar ventana
 function cerrar() {
     if (!procesando.value) {
         emit('cerrar');
@@ -90,6 +95,7 @@ function cerrar() {
 }
 
 function activarEdicion() {
+    if (!props.esAdmin) return;
     error.value = '';
     editando.value = true;
 }
@@ -105,6 +111,7 @@ function cancelarEdicion() {
 }
 
 async function guardarCambios() {
+    if (!props.esAdmin) return;
     if (procesando.value) return;
 
     error.value = '';
@@ -121,22 +128,17 @@ async function guardarCambios() {
                     ? valor.trim()
                     : valor;
         }
-
         if (Object.values(datos).some(v => !String(v).trim())) {
             throw new Error('Todos los campos son obligatorios.');
         }
-
         const respuesta = await api(ruta.value, {
             method: 'PUT',
             body: datos
         });
-
         if (respuesta?.success !== true) {
             throw new Error('No se pudo actualizar el registro.');
         }
-
         emit('actualizado');
-
     } catch (err) {
         error.value = err.message ||
             'Error al actualizar el registro.';
@@ -146,8 +148,8 @@ async function guardarCambios() {
 }
 
 async function eliminarRegistro() {
+    if (!props.esAdmin) return;
     if (procesando.value) return;
-
     const nombre = props.tipo === 'jugador'
         ? props.registro.nickname
         : props.registro.nombre;
@@ -156,19 +158,14 @@ async function eliminarRegistro() {
         `¿Estás seguro de eliminar "${nombre}"?\n` +
         'Esta acción no se puede deshacer.'
     );
-
     if (!confirmado) return;
-
     error.value = '';
     procesando.value = true;
-
     try {
         await api(ruta.value, {
             method: 'DELETE'
         });
-
         emit('eliminado');
-
     } catch (err) {
         error.value = err.message ||
             'Error al eliminar el registro.';
@@ -198,7 +195,6 @@ onMounted(() => {
                 tabindex="-1"
                 @keydown.esc="cerrar"
             >
-                <!-- ENCABEZADO -->
                 <header class="encabezado">
                     <div>
                         <h2 id="titulo-detalle">
@@ -221,11 +217,7 @@ onMounted(() => {
                         &times;
                     </button>
                 </header>
-                
-                <!-- MODO CONSULTA -->
                 <div v-if="!editando">
-
-                    <!-- Información del registro -->
                     <div class="datos">
                         <div
                             v-for="campo in campos"
@@ -241,17 +233,13 @@ onMounted(() => {
                             </span>
                         </div>
                     </div>
-
-                    <!-- Solo aparece cuando consultamos un roster -->
                     <IntegrantesRoster
                         v-if="tipo === 'roster'"
                         :roster-id="registro.id"
+                        :es-admin="esAdmin"
                         @cambiado="emit('asignaciones-cambiadas')"
                     />
-
                 </div>
-
-                <!-- MODO EDICIÓN -->
                 <form
                     v-else
                     id="formulario-editar"
@@ -291,16 +279,13 @@ onMounted(() => {
                         />
                     </div>
                 </form>
-
-                <!-- ERRORES DEL BACKEND -->
                 <p v-if="error" class="error" role="alert">
                     {{ error }}
                 </p>
-
-                <!-- BOTONES -->
                 <footer class="acciones">
                     <template v-if="!editando">
                         <button
+                            v-if="esAdmin"
                             type="button"
                             class="btn eliminar"
                             :disabled="procesando"
@@ -308,8 +293,8 @@ onMounted(() => {
                         >
                             Eliminar
                         </button>
-
                         <button
+                            v-if="esAdmin"
                             type="button"
                             class="btn editar"
                             :disabled="procesando"
@@ -317,17 +302,7 @@ onMounted(() => {
                         >
                             Editar
                         </button>
-
-                        <button
-                            type="button"
-                            class="btn secundario"
-                            :disabled="procesando"
-                            @click="cerrar"
-                        >
-                            Cerrar
-                        </button>
                     </template>
-
                     <template v-else>
                         <button
                             type="button"
@@ -337,7 +312,6 @@ onMounted(() => {
                         >
                             Cancelar
                         </button>
-
                         <button
                             type="submit"
                             form="formulario-editar"
@@ -360,7 +334,7 @@ onMounted(() => {
     position: fixed;
     inset: 0;
     z-index: 1000;
-    background: rgba(15, 23, 42, 0.6);
+    background: rgba(0, 0, 0, 0.78);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -369,16 +343,18 @@ onMounted(() => {
 }
 
 .modal {
-    background: white;
+    background: #4b4b4b;
     width: 100%;
     max-width: 500px;
     max-height: calc(100vh - 32px);
     overflow-y: auto;
     padding: 28px;
     border-radius: 14px;
-    box-shadow: 0 12px 35px #00000030;
+    border: 1px solid #78613b;
+    box-shadow: 0 18px 55px rgba(0, 0, 0, 0.55);
     box-sizing: border-box;
-    color: #1e293b;
+    color: #f5f3ed;
+    font-family: Arial, sans-serif;
 }
 
 .encabezado {
@@ -392,43 +368,54 @@ onMounted(() => {
 .encabezado h2 {
     margin: 0;
     text-transform: capitalize;
+    color: #f0c86d;
 }
 
 .encabezado p {
     margin: 6px 0 0;
-    color: #64748b;
+    color: #d2ccc0;
     font-size: 14px;
 }
 
 .cerrar {
     border: none;
     background: transparent;
-    color: #64748b;
+    color: #e5c071;
     font-size: 28px;
     cursor: pointer;
     padding: 0 4px;
 }
 
+.cerrar:hover:not(:disabled) {
+    color: #ffffff;
+}
+
 .datos {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 20px;
+    gap: 12px;
     margin-bottom: 26px;
 }
 
 .dato {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 7px;
     min-width: 0;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #655a48;
+    background: #383838;
 }
 
 .etiqueta {
-    color: #64748b;
+    color: #f0c86d;
     font-size: 13px;
+    font-weight: 600;
 }
 
 .valor {
+    color: #ffffff;
     font-size: 15px;
     font-weight: 600;
     overflow-wrap: anywhere;
@@ -444,23 +431,27 @@ onMounted(() => {
 .campo label {
     font-size: 14px;
     font-weight: 600;
+    color: #f0c86d;
 }
 
 .campo input,
 .campo select {
     padding: 11px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #837356;
     border-radius: 7px;
     font-size: 15px;
-    background: white;
-    color: #1e293b;
+    background: #333333;
+    color: #ffffff;
+    color-scheme: dark;
     width: 100%;
     box-sizing: border-box;
 }
 
 .campo input:focus,
 .campo select:focus {
-    outline: 2px solid #93c5fd;
+    outline: 2px solid #e2b85a;
+    outline-offset: 1px;
+    border-color: #e2b85a;
 }
 
 .acciones {
@@ -469,39 +460,65 @@ onMounted(() => {
     gap: 9px;
     flex-wrap: wrap;
     margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #69604e;
 }
 
 .btn {
     padding: 11px 16px;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 7px;
     cursor: pointer;
     font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.15s;
 }
 
 .editar {
-    background: #2563eb;
-    color: white;
+    background: #c79b3b;
+    color: #212121;
+}
+
+.editar:hover:not(:disabled) {
+    background: #e2b85a;
 }
 
 .eliminar {
-    background: #dc2626;
-    color: white;
+    background: #803b3b;
+    color: #ffffff;
+    border-color: #bd6868;
+}
+
+.eliminar:hover:not(:disabled) {
+    background: #994545;
 }
 
 .secundario {
-    background: #e2e8f0;
-    color: #334155;
+    background: #626262;
+    color: #ffffff;
+    border-color: #858585;
 }
 
-.btn:disabled {
-    opacity: 0.6;
+.secundario:hover:not(:disabled) {
+    background: #747474;
+}
+
+.btn:focus-visible,
+.cerrar:focus-visible {
+    outline: 2px solid #f0c86d;
+    outline-offset: 3px;
+}
+
+.btn:disabled,
+.cerrar:disabled {
+    opacity: 0.55;
     cursor: not-allowed;
 }
 
 .error {
-    background: #fef2f2;
-    color: #b91c1c;
+    background: #4d2b2b;
+    color: #ffb4af;
+    border: 1px solid #a75a5a;
     padding: 12px;
     border-radius: 7px;
     font-size: 14px;

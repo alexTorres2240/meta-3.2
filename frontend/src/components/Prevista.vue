@@ -2,7 +2,6 @@
 <script setup>
 import { ref } from 'vue';
 
-// Información que recibimos del componente padre
 defineProps({
     titulo: {
         type: String,
@@ -18,36 +17,27 @@ defineProps({
     }
 });
 
-// Evento que se enviará al seleccionar un registro
 const emit = defineEmits(['seleccionar']);
 
-// Registro seleccionado
 const seleccionado = ref(null);
 
 function seleccionarRegistro(registro) {
     seleccionado.value = registro.id;
-
-    // Avisar al componente padre
     emit('seleccionar', registro);
 }
 </script>
 
 <template>
     <section class="prevista">
-        <!-- Encabezado -->
         <header class="encabezado">
             <div>
                 <h2>{{ titulo }}</h2>
                 <p>{{ registros.length }} registros</p>
             </div>
-
-            <!-- Espacio para botones personalizados -->
             <div class="acciones">
                 <slot name="acciones"></slot>
             </div>
         </header>
-
-        <!-- Tabla -->
         <div class="tabla-contenedor">
             <table>
                 <thead>
@@ -60,7 +50,6 @@ function seleccionarRegistro(registro) {
                         </th>
                     </tr>
                 </thead>
-
                 <tbody>
                     <tr
                         v-for="registro in registros"
@@ -82,7 +71,6 @@ function seleccionarRegistro(registro) {
                             {{ registro[columna.campo] ?? '—' }}
                         </td>
                     </tr>
-
                     <tr v-if="registros.length === 0">
                         <td
                             :colspan="columnas.length"
@@ -99,11 +87,13 @@ function seleccionarRegistro(registro) {
 
 <style scoped>
 .prevista {
-    background: white;
+    background: #4b4b4b;
+    color: #f5f3ed;
+    border: 1px solid #665944;
     border-radius: 12px;
     padding: 24px;
     margin-bottom: 25px;
-    box-shadow: 0 3px 15px #00000014;
+    box-shadow: 0 8px 26px rgba(0, 0, 0, 0.24);
 }
 
 .encabezado {
@@ -115,12 +105,13 @@ function seleccionarRegistro(registro) {
 }
 
 .encabezado h2 {
+    color: #f0c86d;
     margin: 0;
 }
 
 .encabezado p {
     margin: 6px 0 0;
-    color: #64748b;
+    color: #d2ccc0;
     font-size: 14px;
 }
 
@@ -132,45 +123,57 @@ function seleccionarRegistro(registro) {
 
 .tabla-contenedor {
     overflow-x: auto;
+    border: 1px solid #665944;
+    border-radius: 8px;
+    background: #383838;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
+    color: #f5f3ed;
 }
 
 th, td {
     padding: 14px;
     text-align: left;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #625744;
 }
 
 th {
-    background: #f8fafc;
-    color: #475569;
+    background: #2d2d2d;
+    color: #f0c86d;
+    font-weight: 600;
+}
+
+tbody tr:nth-child(even) td {
+    background: #414141;
 }
 
 .fila-interactiva {
     cursor: pointer;
-    transition: background 0.15s;
+    transition: background-color 0.15s;
 }
 
-.fila-interactiva:hover {
-    background: #eff6ff;
+.fila-interactiva:hover,
+.fila-interactiva:hover td {
+    background: #544932;
 }
 
 .fila-interactiva:focus-visible {
-    outline: 2px solid #2563eb;
+    outline: 2px solid #f0c86d;
     outline-offset: -2px;
 }
 
-.fila-interactiva.seleccionada {
-    background: #dbeafe;
+.fila-interactiva.seleccionada,
+.fila-interactiva.seleccionada td {
+    background: #685431;
+    color: #ffffff;
 }
 
 .sin-datos {
     text-align: center;
-    color: #64748b;
+    color: #d2ccc0;
 }
 
 @media (max-width: 600px) {

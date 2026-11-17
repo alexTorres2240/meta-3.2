@@ -7,6 +7,10 @@ const props = defineProps({
     rosterId: {
         type: [Number, String],
         required: true
+    },
+    esAdmin: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -32,29 +36,27 @@ const ruta = computed(() =>
     `/rosters/${props.rosterId}/jugadores`
 );
 
-// Consultar integrantes y jugadores disponibles
+
 async function cargarDatos() {
     cargando.value = true;
-
+    error.value = '';
     try {
-        const [respuestaRoster, respuestaDisponibles] =
-            await Promise.all([
-                api(ruta.value),
-                api('/jugadores/disponibles')
-            ]);
-
+        const respuestaRoster = await api(ruta.value);
         integrantes.value = respuestaRoster.jugadores ?? [];
-        disponibles.value = respuestaDisponibles.jugadores ?? [];
-
+        disponibles.value = [];
+        if (props.esAdmin) {
+            const respuestaDisponibles =
+                await api('/jugadores/disponibles');
+            disponibles.value =
+                respuestaDisponibles.jugadores ?? [];
+        }
         Object.keys(rolesTemporales).forEach(id => {
             delete rolesTemporales[id];
         });
-
         integrantes.value.forEach(asignacion => {
             rolesTemporales[asignacion.id_jugador] =
                 asignacion.rol_en_roster;
         });
-
     } catch (err) {
         error.value = err.message;
     } finally {
@@ -62,17 +64,15 @@ async function cargarDatos() {
     }
 }
 
-// Agregar un jugador existente
 async function agregarJugador() {
+    if (!props.esAdmin) return;
     if (!jugadorSeleccionado.value) {
         error.value = 'Selecciona un jugador.';
         return;
     }
-
     guardando.value = true;
     error.value = '';
     mensaje.value = '';
-
     try {
         await api(ruta.value, {
             method: 'POST',
@@ -81,15 +81,11 @@ async function agregarJugador() {
                 rol_en_roster: rolSeleccionado.value
             }
         });
-
         jugadorSeleccionado.value = '';
         rolSeleccionado.value = 'Suplente';
-
         await cargarDatos();
-
         mensaje.value = 'Jugador agregado correctamente.';
         emit('cambiado');
-
     } catch (err) {
         error.value = err.message;
     } finally {
@@ -97,8 +93,8 @@ async function agregarJugador() {
     }
 }
 
-
 async function cambiarRol(asignacion) {
+    if (!props.esAdmin) return;
     if (
         actualizandoId.value !== null ||
         guardando.value ||
@@ -106,21 +102,15 @@ async function cambiarRol(asignacion) {
     ) {
         return;
     }
-
     const idJugador = asignacion.id_jugador;
     const nuevoRol = rolesTemporales[idJugador];
-
-    // No enviar solicitudes si el rol no cambió
     if (nuevoRol === asignacion.rol_en_roster) {
         return;
     }
-
     error.value = '';
     mensaje.value = '';
     actualizandoId.value = idJugador;
-
     try {
-        // Actualizar la asignación mediante Sequelize
         const respuesta = await api(
             `${ruta.value}/${idJugador}`,
             {
@@ -130,21 +120,14 @@ async function cambiarRol(asignacion) {
                 }
             }
         );
-
         if (respuesta?.success !== true) {
             throw new Error(
                 'No se pudo actualizar el rol del jugador.'
             );
         }
-
-        // Recargar los integrantes
         await cargarDatos();
-
         mensaje.value = 'Rol actualizado correctamente.';
-
-        // Notificar al componente padre
         emit('cambiado');
-
     } catch (err) {
         error.value = err.message ||
             'Error al cambiar el rol del jugador.';
@@ -153,33 +136,25 @@ async function cambiarRol(asignacion) {
     }
 }
 
-
-// Quitar al jugador únicamente del roster
 async function quitarJugador(asignacion) {
+    if (!props.esAdmin) return;
     const nombre = asignacion.Jugador?.nickname ?? 'este jugador';
-
     const confirmar = window.confirm(
         `¿Quitar a ${nombre} de este roster?\n` +
         'El jugador seguirá registrado en MySQL.'
     );
-
     if (!confirmar) return;
-
     error.value = '';
     mensaje.value = '';
     quitandoId.value = asignacion.id_jugador;
-
     try {
         await api(
             `${ruta.value}/${asignacion.id_jugador}`,
             { method: 'DELETE' }
         );
-
         await cargarDatos();
-
         mensaje.value = 'Jugador retirado del roster.';
         emit('cambiado');
-
     } catch (err) {
         error.value = err.message;
     } finally {
@@ -207,8 +182,6 @@ onMounted(cargarDatos);
                 Actualizar
             </button>
         </header>
-
-        <!-- TABLA SCROLLEABLE -->
         <div class="tabla-scroll">
             <table>
                 <thead>
@@ -216,7 +189,7 @@ onMounted(cargarDatos);
                         <th>Nickname</th>
                         <th>Posición</th>
                         <th>Rol en roster</th>
-                        <th>Acción</th>
+                        <th v-if="esAdmin">Acción</th>
                     </tr>
                 </thead>
 
@@ -232,10 +205,9 @@ onMounted(cargarDatos);
                         <td>
                             {{ asignacion.Jugador?.rol ?? '—' }}
                         </td>
-
-                        <!-- Rol editable -->
                         <td>
                             <select
+                                v-if="esAdmin"
                                 v-model="rolesTemporales[asignacion.id_jugador]"
                                 class="rol-selector"
                                 :disabled="
@@ -247,12 +219,15 @@ onMounted(cargarDatos);
                                 <option value="Titular">Titular</option>
                                 <option value="Suplente">Suplente</option>
                             </select>
+                            <span
+                                v-else
+                                :class="['rol', asignacion.rol_en_roster]"
+                            >
+                                {{ asignacion.rol_en_roster }}
+                            </span>
                         </td>
-
-                        <td>
+                        <td v-if="esAdmin">
                             <div class="acciones-fila">
-
-                                <!-- Guardar nuevo rol -->
                                 <button
                                     type="button"
                                     class="btn guardar-rol"
@@ -271,8 +246,6 @@ onMounted(cargarDatos);
                                             : 'Guardar'
                                     }}
                                 </button>
-
-                                <!-- Quitar jugador del roster -->
                                 <button
                                     type="button"
                                     class="btn quitar"
@@ -292,11 +265,9 @@ onMounted(cargarDatos);
 
                             </div>
                         </td>
-
                     </tr>
-
                     <tr v-if="integrantes.length === 0">
-                        <td colspan="4" class="vacio">
+                        <td :colspan="esAdmin ? 4 : 3" class="vacio">
                             {{
                                 cargando
                                     ? 'Cargando jugadores...'
@@ -307,23 +278,18 @@ onMounted(cargarDatos);
                 </tbody>
             </table>
         </div>
-
-        <!-- AGREGAR JUGADOR -->
-        <div class="agregar">
+        <div v-if="esAdmin" class="agregar">
             <h3>Agregar jugador existente</h3>
-
             <p class="descripcion">
                 Solo aparecen jugadores activos que no
                 pertenecen a ningún roster.
             </p>
-
             <form @submit.prevent="agregarJugador">
                 <div class="campos">
                     <div class="campo">
                         <label for="jugador-disponible">
                             Jugador disponible
                         </label>
-
                         <select
                             id="jugador-disponible"
                             v-model="jugadorSeleccionado"
@@ -333,7 +299,6 @@ onMounted(cargarDatos);
                             <option value="" disabled>
                                 Selecciona un jugador
                             </option>
-
                             <option
                                 v-for="jugador in disponibles"
                                 :key="jugador.id"
@@ -343,12 +308,10 @@ onMounted(cargarDatos);
                             </option>
                         </select>
                     </div>
-
                     <div class="campo">
                         <label for="rol-nuevo">
                             Rol en el roster
                         </label>
-
                         <select
                             id="rol-nuevo"
                             v-model="rolSeleccionado"
@@ -359,7 +322,6 @@ onMounted(cargarDatos);
                         </select>
                     </div>
                 </div>
-
                 <button
                     type="submit"
                     class="btn agregar-btn"
@@ -372,7 +334,6 @@ onMounted(cargarDatos);
                     {{ guardando ? 'Agregando...' : '+ Agregar al roster' }}
                 </button>
             </form>
-
             <p
                 v-if="!cargando && disponibles.length === 0"
                 class="descripcion"
@@ -380,11 +341,9 @@ onMounted(cargarDatos);
                 No hay jugadores disponibles para asignar.
             </p>
         </div>
-
         <p v-if="error" class="error" role="alert">
             {{ error }}
         </p>
-
         <p v-if="mensaje" class="exito" role="status">
             {{ mensaje }}
         </p>
@@ -395,7 +354,8 @@ onMounted(cargarDatos);
 .integrantes {
     margin-top: 25px;
     padding-top: 20px;
-    border-top: 1px solid #e2e8f0;
+    border-top: 1px solid #78613b;
+    color: #f5f3ed;
 }
 
 .encabezado {
@@ -409,69 +369,82 @@ onMounted(cargarDatos);
 h3 {
     margin: 0;
     font-size: 18px;
-    color: #1e293b;
+    color: #f0c86d;
 }
 
 .encabezado p,
 .descripcion {
-    color: #64748b;
+    color: #d2ccc0;
     font-size: 13px;
     margin: 6px 0 12px;
 }
 
-/* Tabla con scroll vertical */
 .tabla-scroll {
     max-height: 250px;
     overflow-y: auto;
     overflow-x: auto;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #78613b;
     border-radius: 8px;
+    background: #383838;
 }
 
 table {
     width: 100%;
-    min-width: 530px;
+    min-width: 650px;
     border-collapse: collapse;
+    color: #f5f3ed;
 }
 
 th, td {
     padding: 12px;
     text-align: left;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #625744;
     font-size: 14px;
 }
 
 th {
     position: sticky;
     top: 0;
-    background: #f1f5f9;
-    color: #475569;
+    background: #2d2d2d;
+    color: #f0c86d;
+    font-weight: 600;
     z-index: 1;
 }
 
-tr:hover td {
-    background: #f8fafc;
+tbody tr:nth-child(even) td {
+    background: #414141;
+}
+
+tbody tr:hover td {
+    background: #544932;
 }
 
 .rol {
+    display: inline-block;
     border-radius: 5px;
     padding: 5px 9px;
     font-size: 12px;
-    background: #f1f5f9;
+    font-weight: 600;
+    background: #5d5d5d;
+    color: #ffffff;
 }
 
 .rol.Titular {
-    background: #dcfce7;
-    color: #166534;
+    background: #695126;
+    color: #ffe2a1;
+    border: 1px solid #a98540;
 }
 
 .rol.Suplente {
-    background: #dbeafe;
-    color: #1d4ed8;
+    background: #565656;
+    color: #e9e9e9;
+    border: 1px solid #888888;
 }
 
 .agregar {
     margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid #625744;
 }
 
 .campos {
@@ -490,24 +463,44 @@ tr:hover td {
 .campo label {
     font-weight: 600;
     font-size: 13px;
+    color: #f0c86d;
 }
 
-.campo select {
+.campo select,
+.rol-selector {
     padding: 11px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid #837356;
     border-radius: 7px;
-    background: white;
-    color: #1e293b;
+    background: #333333;
+    color: #ffffff;
+    color-scheme: dark;
     width: 100%;
     min-width: 0;
+    box-sizing: border-box;
+}
+
+.rol-selector {
+    font-size: 13px;
+    cursor: pointer;
+    padding: 8px 10px;
+    min-width: 105px;
+}
+
+.campo select:focus,
+.rol-selector:focus {
+    outline: 2px solid #e2b85a;
+    outline-offset: 1px;
+    border-color: #e2b85a;
 }
 
 .btn {
     padding: 9px 13px;
-    border: none;
+    border: 1px solid transparent;
     border-radius: 7px;
     cursor: pointer;
     font-size: 13px;
+    font-weight: 600;
+    transition: background-color 0.15s;
 }
 
 .btn:disabled {
@@ -515,25 +508,65 @@ tr:hover td {
     cursor: not-allowed;
 }
 
+.btn:focus-visible {
+    outline: 2px solid #f0c86d;
+    outline-offset: 2px;
+}
+
 .secundario {
-    background: #e2e8f0;
-    color: #334155;
+    background: #626262;
+    color: #ffffff;
+    border-color: #858585;
+}
+
+.secundario:hover:not(:disabled) {
+    background: #747474;
 }
 
 .quitar {
-    background: #fee2e2;
-    color: #b91c1c;
+    background: #673434;
+    color: #ffdad7;
+    border-color: #a75a5a;
+}
+
+.quitar:hover:not(:disabled) {
+    background: #833d3d;
 }
 
 .agregar-btn {
-    background: #2563eb;
-    color: white;
+    background: #c79b3b;
+    color: #212121;
     margin-top: 14px;
+}
+
+.agregar-btn:hover:not(:disabled) {
+    background: #e2b85a;
+}
+
+.guardar-rol {
+    background: #695126;
+    color: #ffe2a1;
+    border-color: #a98540;
+}
+
+.guardar-rol:hover:not(:disabled) {
+    background: #83642d;
+}
+
+.guardar-rol:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.acciones-fila {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .vacio {
     text-align: center;
-    color: #64748b;
+    color: #d2ccc0;
 }
 
 .error,
@@ -545,61 +578,20 @@ tr:hover td {
 }
 
 .error {
-    background: #fef2f2;
-    color: #b91c1c;
+    background: #4d2b2b;
+    color: #ffb4af;
+    border: 1px solid #a75a5a;
 }
 
 .exito {
-    background: #f0fdf4;
-    color: #166534;
+    background: #264234;
+    color: #b8ebc7;
+    border: 1px solid #4a8862;
 }
 
 @media (max-width: 600px) {
     .campos {
         grid-template-columns: 1fr;
     }
-}
-
-/* Selector de rol de cada integrante */
-.rol-selector {
-    padding: 8px 10px;
-    border: 1px solid #cbd5e1;
-    border-radius: 7px;
-    background: white;
-    color: #1e293b;
-    font-size: 13px;
-    cursor: pointer;
-    min-width: 105px;
-}
-
-.rol-selector:focus {
-    outline: 2px solid #93c5fd;
-    border-color: #2563eb;
-}
-
-/* Acciones de cada fila */
-.acciones-fila {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.guardar-rol {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.guardar-rol:hover:not(:disabled) {
-    background: #bfdbfe;
-}
-
-.guardar-rol:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-
-/* Mantener el desplazamiento horizontal */
-.tabla-scroll table {
-    min-width: 650px;
 }
 </style>

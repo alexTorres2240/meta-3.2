@@ -39,17 +39,26 @@ app.get('/', (req, res) => {
 });
 
 
-// Rutas públicas auxiliares
 app.use('/api', auxiliaresRoutes);
 
 // Autenticación y cierre de sesión
+app.use('/auth/google', googleRoutes);
 app.use('/api', authRoutes);
 
-// Rutas exclusivas del administrador
+function autorizarDatos(req, res, next) {
+    if (req.path === '/jugadores/disponibles') {
+        return soloAdmin(req, res, next);
+    }
+    if (req.method === 'GET' || req.method === 'HEAD') {
+        return next();
+    }
+    return soloAdmin(req, res, next);
+}
+
 app.use(
     '/api',
     autenticar,
-    soloAdmin,
+    autorizarDatos,
     verificarCsrf,
     jugadoresRoutes
 );
@@ -57,7 +66,7 @@ app.use(
 app.use(
     '/api',
     autenticar,
-    soloAdmin,
+    autorizarDatos,
     verificarCsrf,
     rostersRoutes
 );
@@ -65,7 +74,7 @@ app.use(
 app.use(
     '/api',
     autenticar,
-    soloAdmin,
+    autorizarDatos,
     verificarCsrf,
     rostersJugadoresRoutes
 );

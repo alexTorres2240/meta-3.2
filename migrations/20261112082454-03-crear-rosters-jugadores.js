@@ -43,7 +43,6 @@ module.exports = {
                 allowNull: false
             }
         });
-
         await queryInterface.addIndex(
             'rosters_jugadores',
             ['id_roster', 'id_jugador'],
