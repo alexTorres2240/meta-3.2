@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
-// Node.js 24: el mismo archivo de credenciales que ya utiliza auth.spec.js.
+// Mismo archivo de credenciales que utiliza auth.spec.js. Public NO tiene cuenta.
 loadEnvFile(fileURLToPath(new URL('../../.env.e2e', import.meta.url)));
 
 export const FRONTEND = process.env.E2E_FRONTEND_URL || 'http://localhost:5173';
@@ -16,10 +16,6 @@ const credentials = {
   admin: {
     correo: process.env.E2E_ADMIN_EMAIL,
     password: process.env.E2E_ADMIN_PASSWORD
-  },
-  public: {
-    correo: process.env.E2E_PUBLIC_EMAIL,
-    password: process.env.E2E_PUBLIC_PASSWORD
   }
 };
 
@@ -31,18 +27,22 @@ function credentialsFor(role) {
   return account;
 }
 
-// Reutiliza una sesión JWT real creada por global-setup. Así no se agota
-// el límite de 10 intentos de login/15 minutos configurado en Express.
-// El flujo de escribir correo/contraseña ya lo cubre auth.spec.js.
-export async function signIn(page, role = 'admin') {
-  const state = JSON.parse(readFileSync(authFile(role), 'utf8'));
+// Los tests de CRUD reutilizan una sesión Admin auténtica creada en global-setup.
+// Al añadir la cookie ANTES de cargar la página, App.vue detecta la sesión
+// mediante /auth/me y abre directamente el panel. No hay que simular el login.
+export async function signIn(page) {
+  const state = JSON.parse(readFileSync(authFile('admin'), 'utf8'));
   await page.context().addCookies(state.cookies);
+
+  // Comprueba la sesión real que usarán las operaciones administrativas.
+  const meResponse = await page.context().request.get(`${API}/auth/me`);
+  expect(meResponse.status(), 'La sesión Admin de global-setup no es válida').toBe(200);
+  const data = await meResponse.json();
+  expect(data.usuario?.rol).toBe('admin');
+
   await page.goto(FRONTEND);
   await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toBeVisible();
-  const r = await page.context().request.get(`${API}/auth/me`);
-  expect(r.status(), `No se pudo confirmar el rol ${role}`).toBe(200);
-  const data = await r.json();
-  expect(data.usuario.rol).toBe(role === 'admin' ? 'admin' : 'usuario');
+  await expect(page.getByRole('button', { name: /Nuevo jugador/i })).toBeVisible();
 }
 
 // Selecciona la tabla correcta, no las filas del modal de integrantes.
@@ -129,7 +129,7 @@ class Records {
       estado: 'activo',
       ...overrides
     };
-    const r = await writeApi(this.context, 'POST', '/jugadores', body);
+    const r = await writeApi(this.context, 'POST', '/admin/jugadores', body);
     const data = await mustSucceed(r, 201, 'Crear jugador de prueba');
     return data.jugador;
   }
@@ -144,13 +144,13 @@ class Records {
       temporada: '2026',
       ...overrides
     };
-    const r = await writeApi(this.context, 'POST', '/rosters', body);
+    const r = await writeApi(this.context, 'POST', '/admin/rosters', body);
     const data = await mustSucceed(r, 201, 'Crear roster de prueba');
     return data.roster;
   }
 
   async assign(roster, player, rol = 'Suplente') {
-    const r = await writeApi(this.context, 'POST', `/rosters/${roster.id}/jugadores`, {
+    const r = await writeApi(this.context, 'POST', `/admin/rosters/${roster.id}/jugadores`, {
       id_jugador: player.id,
       rol_en_roster: rol
     });
@@ -167,21 +167,21 @@ class Records {
   // Limpieza conservadora: SOLO nombres E2E que este test registró.
   // Primero quita relaciones; después jugadores y finalmente rosters.
   async cleanup() {
-    const players = (await this.getAll('/jugadores', 'jugadores'))
+    const players = (await this.getAll('/public/jugadores', 'jugadores'))
       .filter(p => this.players.has(p.nickname));
-    const rosters = (await this.getAll('/rosters', 'rosters'))
+    const rosters = (await this.getAll('/public/rosters', 'rosters'))
       .filter(r => this.rosters.has(r.nombre));
 
     // Incluye las relaciones del roster creado o de nuestros jugadores.
-    const allRosters = await this.getAll('/rosters', 'rosters');
+    const allRosters = await this.getAll('/public/rosters', 'rosters');
     for (const roster of allRosters) {
       if (!this.rosters.has(roster.nombre) && players.length === 0) continue;
-      const response = await this.context.get(`${API}/rosters/${roster.id}/jugadores`);
+      const response = await this.context.get(`${API}/public/rosters/${roster.id}/jugadores`);
       if (!response.ok()) continue;
       const { jugadores = [] } = await response.json();
       for (const a of jugadores) {
         if (this.rosters.has(roster.nombre) || players.some(p => p.id === a.id_jugador)) {
-          const result = await writeApi(this.context, 'DELETE', `/rosters/${roster.id}/jugadores/${a.id_jugador}`);
+          const result = await writeApi(this.context, 'DELETE', `/admin/rosters/${roster.id}/jugadores/${a.id_jugador}`);
           if (![204, 404].includes(result.status())) {
             console.warn(`No pude quitar asignación E2E ${roster.id}/${a.id_jugador}: ${result.status()}`);
           }
@@ -190,11 +190,11 @@ class Records {
     }
 
     for (const player of players) {
-      const r = await writeApi(this.context, 'DELETE', `/jugadores/${player.id}`);
+      const r = await writeApi(this.context, 'DELETE', `/admin/jugadores/${player.id}`);
       if (![204, 404, 200].includes(r.status())) console.warn(`No pude borrar jugador E2E ${player.id}: ${r.status()}`);
     }
     for (const roster of rosters) {
-      const r = await writeApi(this.context, 'DELETE', `/rosters/${roster.id}`);
+      const r = await writeApi(this.context, 'DELETE', `/admin/rosters/${roster.id}`);
       if (![204, 404, 200].includes(r.status())) console.warn(`No pude borrar roster E2E ${roster.id}: ${r.status()}`);
     }
   }

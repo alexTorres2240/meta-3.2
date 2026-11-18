@@ -18,6 +18,7 @@ const error = ref('');
 
 const tipoCrear = ref(null);
 const detalle = ref(null);
+const mostrandoLogin = ref(false);
 
 async function cargarDatos() {
   const [datosJugadores, datosRosters] = await Promise.all([
@@ -71,25 +72,30 @@ function accionPendiente(accion, id = null) {
     console.log('Acción:', accion, 'Registro:', id);
 }
 
-
 async function verificarSesion() {
+    error.value = '';
     try {
-        const respuesta = await api('/auth/me');
+        try {
+            const respuesta = await api('/auth/me');
 
-        if (!['admin', 'usuario'].includes(respuesta.usuario.rol)) {
-            throw new Error('Rol de usuario no reconocido');
+            usuario.value =
+                respuesta.usuario?.rol === 'admin'
+                    ? respuesta.usuario
+                    : null;
+        } catch (err) {
+            usuario.value = null;
+            if (err.status !== 401) {
+                error.value = err.message;
+            }
         }
-        usuario.value = respuesta.usuario;
         await cargarDatos();
     } catch (err) {
-        usuario.value = null;
-        if (err.status !== 401) {
-            error.value = err.message;
-        }
+        error.value = err.message;
     } finally {
         cargando.value = false;
     }
 }
+
 
 async function iniciarSesion() {
     error.value = '';
@@ -102,11 +108,22 @@ async function iniciarSesion() {
                 password: password.value
             }
         });
-        if (!['admin', 'usuario'].includes(respuesta.usuario.rol)) {
-            throw new Error('Rol de usuario no reconocido');
+        if (respuesta.usuario?.rol !== 'admin') {
+            try {
+                await api('/auth/logout', {
+                    method: 'POST'
+                });
+            } catch {
+            }
+            throw new Error(
+                'Acceso exclusivo para administradores'
+            );
         }
         usuario.value = respuesta.usuario;
+        mostrandoLogin.value = false;
         password.value = '';
+        tipoCrear.value = null;
+        detalle.value = null;
         await cargarDatos();
     } catch (err) {
         error.value = err.message;
@@ -115,33 +132,53 @@ async function iniciarSesion() {
     }
 }
 
+
 async function cerrarSesion() {
-  error.value = '';
-  try {
-    await api('/auth/logout', {
-      method: 'POST'
-    });
-    usuario.value = null;
-    jugadores.value = [];
-    rosters.value = [];
+    error.value = '';
+    try {
+        await api('/auth/logout', {
+            method: 'POST'
+        });
+        usuario.value = null;
+        mostrandoLogin.value = false;
+        tipoCrear.value = null;
+        detalle.value = null;
+        correo.value = '';
+        password.value = '';
+        await cargarDatos();
+    } catch (err) {
+        error.value = err.message;
+    }
+}
+
+function abrirLogin() {
+    error.value = '';
+    mostrandoLogin.value = true;
+}
+
+function volverAlCatalogo() {
+    error.value = '';
+    mostrandoLogin.value = false;
     correo.value = '';
     password.value = '';
-  } catch (err) {
-    error.value = err.message;
-  }
 }
+
 
 onMounted(verificarSesion);
 </script>
 
+
 <template>
   <main class="contenedor">
     <div v-if="cargando" class="tarjeta">
-      Comprobando sesión...
+      Cargando registros...
     </div>
-    <section v-else-if="!usuario" class="tarjeta login">
+    <section
+      v-else-if="mostrandoLogin && !usuario"
+      class="tarjeta login"
+    >
       <h1>ES Rosters Database</h1>
-       <form @submit.prevent="iniciarSesion">
+      <form @submit.prevent="iniciarSesion">
         <label>Correo electrónico</label>
         <input
           v-model="correo"
@@ -159,53 +196,76 @@ onMounted(verificarSesion);
           placeholder="Contraseña"
         />
         <button :disabled="procesando">
-          {{ procesando ? "Ingresando..." : "Iniciar sesión" }}
+          {{ procesando ? 'Ingresando...' : 'Iniciar sesión' }}
         </button>
-       </form>
+      </form>
+      <button type="button" @click="volverAlCatalogo">
+        Volver al catálogo
+      </button>
     </section>
     <section v-else>
       <header class="cabecera">
         <div>
-          <h1>Panel de administración</h1>
-          <p>Bienvenido, {{  usuario.nombre }}</p>
+          <h1>
+            {{
+              usuario?.rol === 'admin'
+                ? 'Panel de administración'
+                : 'ES Rosters Database'
+            }}
+          </h1>
+          <p v-if="usuario?.rol === 'admin'">
+            Bienvenido, {{ usuario.nombre }}
+          </p>
+          <p v-else>
+            Consulta pública de jugadores y rosters
+          </p>
         </div>
-        <button class="salir" @click="cerrarSesion">
+        <button
+          v-if="usuario?.rol === 'admin'"
+          class="salir"
+          @click="cerrarSesion"
+        >
           Cerrar sesión
+        </button>
+        <button
+          v-else
+          type="button"
+          @click="abrirLogin"
+        >
+          Iniciar sesión
         </button>
       </header>
       <PanelPrevistas
-          :jugadores="jugadores"
-          :rosters="rosters"
-          :es-admin="usuario?.rol === 'admin'"
-          @actualizar="actualizarVista"
-          @nuevo-jugador="abrirCrear('jugador')"
-          @nuevo-roster="abrirCrear('roster')"
-          @seleccionar-jugador="
-              registro => abrirDetalle('jugador', registro)
-          "
-
-          @seleccionar-roster="
-              registro => abrirDetalle('roster', registro)
-          "
+        :jugadores="jugadores"
+        :rosters="rosters"
+        :es-admin="usuario?.rol === 'admin'"
+        @actualizar="actualizarVista"
+        @nuevo-jugador="abrirCrear('jugador')"
+        @nuevo-roster="abrirCrear('roster')"
+        @seleccionar-jugador="
+          registro => abrirDetalle('jugador', registro)
+        "
+        @seleccionar-roster="
+          registro => abrirDetalle('roster', registro)
+        "
       />
       <Crear
-          v-if="tipoCrear"
-          :key="tipoCrear"
-          :tipo="tipoCrear"
-          @cerrar="cerrarCrear"
-          @creado="registroCreado"
+        v-if="usuario?.rol === 'admin' && tipoCrear"
+        :key="tipoCrear"
+        :tipo="tipoCrear"
+        @cerrar="cerrarCrear"
+        @creado="registroCreado"
       />
       <Detalle
-          v-if="detalle"
-          :key="`${detalle.tipo}-${detalle.registro.id}`"
-          :tipo="detalle.tipo"
-          :registro="detalle.registro"
-          :es-admin="usuario?.rol === 'admin'"
-
-          @cerrar="cerrarDetalle"
-          @actualizado="detalleModificado"
-          @eliminado="detalleModificado"
-          @asignaciones-cambiadas="actualizarVista"
+        v-if="detalle"
+        :key="`${detalle.tipo}-${detalle.registro.id}`"
+        :tipo="detalle.tipo"
+        :registro="detalle.registro"
+        :es-admin="usuario?.rol === 'admin'"
+        @cerrar="cerrarDetalle"
+        @actualizado="detalleModificado"
+        @eliminado="detalleModificado"
+        @asignaciones-cambiadas="actualizarVista"
       />
     </section>
     <p v-if="error" class="error" role="alert">
@@ -213,6 +273,7 @@ onMounted(verificarSesion);
     </p>
   </main>
 </template>
+
 
 <style scoped>
 .contenedor {

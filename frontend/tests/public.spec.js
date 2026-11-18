@@ -1,35 +1,33 @@
-import { test, expect, signIn, tableFor, rowFor, openDetail, ALLOW_WRITES, ISOLATED_DB_MESSAGE } from './helpers/e2e.js';
+import { test, expect, FRONTEND, tableFor, rowFor, openDetail, ALLOW_WRITES, ISOLATED_DB_MESSAGE } from './helpers/e2e.js';
 
-// Estas dos pruebas son de SOLO LECTURA y pueden ejecutarse sin base aislada.
-test('Public puede consultar los listados sin modificar registros', async ({ page }) => {
-  await signIn(page, 'public');
+test('Public consulta los listados sin abrir el formulario de login', async ({ page }) => {
+  await page.goto(FRONTEND);
   await expect(tableFor(page, 'Jugadores')).toBeVisible();
   await expect(tableFor(page, 'Rosters')).toBeVisible();
+  await expect(page.locator('input[type="email"]')).toHaveCount(0);
 });
 
-test('Public no tiene controles de creación en el dashboard', async ({ page }) => {
-  await signIn(page, 'public');
+test('Public no tiene controles de creación en el catálogo', async ({ page }) => {
+  await page.goto(FRONTEND);
+  await expect(tableFor(page, 'Jugadores')).toBeVisible();
   await expect(page.getByRole('button', { name: /Nuevo jugador/i })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /Nuevo roster/i })).toHaveCount(0);
 });
 
-test.describe('Rol Public: consultas de solo lectura', () => {
+test.describe('Public anónimo: consultas de solo lectura', () => {
   test.skip(!ALLOW_WRITES, ISOLATED_DB_MESSAGE);
 
-  test('Public consulta tablas de jugadores y rosters', async ({ page, records }) => {
+  test('Public ve los jugadores y rosters que existen en MySQL', async ({ page, records }) => {
     const player = await records.createPlayer();
     const roster = await records.createRoster();
-    await signIn(page, 'public');
-
-    await expect(tableFor(page, 'Jugadores')).toBeVisible();
-    await expect(tableFor(page, 'Rosters')).toBeVisible();
+    await page.goto(FRONTEND);
     await expect(rowFor(page, 'Jugadores', player.nickname)).toBeVisible();
     await expect(rowFor(page, 'Rosters', roster.nombre)).toBeVisible();
   });
 
-  test('Public abre y consulta detalle de jugador', async ({ page, records }) => {
+  test('Public consulta el detalle de un jugador sin opciones de edición', async ({ page, records }) => {
     const player = await records.createPlayer();
-    await signIn(page, 'public');
+    await page.goto(FRONTEND);
     const dialog = await openDetail(page, 'Jugadores', player.nickname);
     await expect(dialog).toContainText(player.nickname);
     await expect(dialog).toContainText('Top');
@@ -37,12 +35,11 @@ test.describe('Rol Public: consultas de solo lectura', () => {
     await expect(dialog.getByRole('button', { name: 'Eliminar', exact: true })).toHaveCount(0);
   });
 
-  test('Public abre roster y consulta sus integrantes', async ({ page, records }) => {
+  test('Public consulta los integrantes de un roster sin controles administrativos', async ({ page, records }) => {
     const roster = await records.createRoster();
     const player = await records.createPlayer();
     await records.assign(roster, player, 'Suplente');
-    await signIn(page, 'public');
-
+    await page.goto(FRONTEND);
     const dialog = await openDetail(page, 'Rosters', roster.nombre);
     await expect(dialog.getByRole('heading', { name: 'Jugadores del roster' })).toBeVisible();
     const row = dialog.locator('.integrantes tbody tr').filter({ hasText: player.nickname });
@@ -53,10 +50,13 @@ test.describe('Rol Public: consultas de solo lectura', () => {
     await expect(dialog.locator('.rol-selector')).toHaveCount(0);
   });
 
-  test('Public no ve botones para crear registros', async ({ page, records }) => {
-    await records.createRoster();
-    await signIn(page, 'public');
-    await expect(page.getByRole('button', { name: /Nuevo jugador/i })).toHaveCount(0);
+  test('Public puede actualizar los listados sin iniciar sesión', async ({ page, records }) => {
+    const roster = await records.createRoster();
+    await page.goto(FRONTEND);
+    await expect(rowFor(page, 'Rosters', roster.nombre)).toBeVisible();
+    // Verifica la persistencia de los datos a través de una nueva carga.
+    await page.reload();
+    await expect(rowFor(page, 'Rosters', roster.nombre)).toBeVisible();
     await expect(page.getByRole('button', { name: /Nuevo roster/i })).toHaveCount(0);
   });
 });
